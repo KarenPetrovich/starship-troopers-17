@@ -837,6 +837,12 @@
       margin-top: 6px;
     }
 
+    #resultActions {
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
     .page-button {
       font-family: "BoldPixels", "Orbitron", "Rajdhani", sans-serif;
       min-width: 132px;
@@ -852,6 +858,48 @@
       font-weight: 700;
       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
       cursor: pointer;
+    }
+
+    .result-action-button {
+      min-width: 0;
+      min-height: 0;
+      width: min(226px, 30vw);
+      aspect-ratio: 1217 / 154;
+      padding: 0;
+      border: 0;
+      background: url("assets/ui/menu_button_01.png") center center / 100% 100% no-repeat;
+      color: var(--text);
+      font-family: "BoldPixels", "Orbitron", "Rajdhani", sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+      filter: brightness(1) saturate(1);
+    }
+
+    .result-action-button span {
+      position: relative;
+      transform: translateY(3px);
+    }
+
+    .result-action-button:hover,
+    .result-action-button:focus-visible {
+      outline: none;
+      color: #ffffff;
+      transform: translateY(-1px);
+      filter: brightness(1.06) saturate(1.08);
+      box-shadow:
+        0 0 0 1px rgba(255, 96, 52, 0.06) inset,
+        0 0 8px rgba(255, 96, 52, 0.08);
+    }
+
+    .result-action-button:hover::before,
+    .result-action-button:focus-visible::before {
+      opacity: 1;
     }
 
     .page-button:hover,
@@ -903,6 +951,10 @@
 
       .page-button {
         width: 100%;
+      }
+
+      .result-action-button {
+        width: min(100%, 366px);
       }
 
       .settings-button {
@@ -1430,6 +1482,15 @@
       return count !== null ? `${label} ×${count}` : label;
     }
 
+    function formatResultDamageValue(value) {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) {
+        return value ?? "-";
+      }
+
+      return numeric.toFixed(1).replace(/\.0$/, "");
+    }
+
     function renderResultRows() {
       if (!currentResultData) {
         resultBody.innerHTML = "";
@@ -1493,7 +1554,7 @@
             title: "ПОЛУЧЕННЫЙ УРОН",
             rows: [
               { label: "Попаданий", value: damageStats.hits ?? currentResultData.hitsText ?? "-" },
-              { label: "Получено урона", value: Number.isFinite(damageStats.damageTaken) ? damageStats.damageTaken : currentResultData.totalDamageText || "-" },
+              { label: "Получено урона", value: formatResultDamageValue(damageStats.damageTaken ?? currentResultData.totalDamageText) },
               { label: "Замедлений", value: damageStats.slows ?? "-" }
             ]
           },
@@ -1589,9 +1650,9 @@
 
       for (const item of actions) {
         const button = document.createElement("button");
-        button.className = "page-button";
+        button.className = "result-action-button";
         button.type = "button";
-        button.textContent = item.label;
+        button.innerHTML = `<span>${item.label}</span>`;
         button.dataset.action = item.action;
         button.addEventListener("click", onResultActionClick);
         resultActions.appendChild(button);

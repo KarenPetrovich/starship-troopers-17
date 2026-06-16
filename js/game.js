@@ -37,11 +37,11 @@ window.__startGameFromMenu = function startGameFromMenu() {
 };
 let finalRunResult = null;
 const enemyDisplayNames = {
-  normal: "РўР°СЂР°РЅ",
-  web: "РџР°СѓС‡РѕРє",
-  zigzag: "Р—РёРіР·Р°Рі",
-  tank: "РўР°РЅРє",
-  boss: "Р‘РѕСЃСЃ"
+  normal: "Таран",
+  web: "Паучок",
+  zigzag: "Зигзаг",
+  tank: "Танк",
+  boss: "Босс"
 };
 const enemyVisualScale = {
   normal: 1.15,
@@ -352,22 +352,22 @@ function computeGradePoints() {
 
 function getResultBattleText() {
   if (runStats.bossDefeated) {
-    return "Р‘РѕСЃСЃ СѓРЅРёС‡С‚РѕР¶РµРЅ";
+    return "Босс уничтожен";
   }
 
   if (runStats.bossAppeared) {
-    return "Р‘РѕР№ СЃ Р±РѕСЃСЃРѕРј РЅРµ Р·Р°РІРµСЂС€С‘РЅ";
+    return "Бой с боссом не завершён";
   }
 
   if (runStats.deathReason) {
-    return "РџРѕСЂР°Р¶РµРЅРёРµ РґРѕ Р±РѕСЃСЃР°";
+    return "Поражение до босса";
   }
 
-  return "Р—Р°Р±РµРі Р·Р°РІРµСЂС€С‘РЅ";
+  return "Забег завершён";
 }
 
 function getLeaderboardPlaceText() {
-  return "РўР°Р±Р»РёС†Р° РЅРµ РїРѕРґРєР»СЋС‡РµРЅР°";
+  return "Таблица не подключена";
 }
 
 function getTopDamageReasons(limit = 3) {
@@ -421,49 +421,49 @@ function buildResultGrade() {
 function getGradeCommentPool() {
   return {
     0: [
-      "РџР°СѓРєРё РґР°Р¶Рµ РЅРµ РІСЃРїРѕС‚РµР»Рё.",
-      "РўРµР±СЏ С…РІР°С‚РёР»Рѕ РЅРµРЅР°РґРѕР»РіРѕ, РЅРѕ С€СѓРјРЅРѕ.",
-      "Р—Р°Р±РµРі СЃРІРµСЂРЅСѓР»СЃСЏ СЂР°РЅСЊС€Рµ, С‡РµРј СѓСЃРїРµР» СЂР°Р·РѕРіРЅР°С‚СЊСЃСЏ."
+      "Паучки даже не вспотели.",
+      "Тебя хватило ненадолго, но шумно.",
+      "Забег свернулся раньше, чем успел разогнаться."
     ],
     1: [
-      "РќРµСЂРІРѕРІ Р±С‹Р»Рѕ Р±РѕР»СЊС€Рµ, С‡РµРј РїР»Р°РЅР°.",
-      "РЎС‚С‹РґРЅРѕ РЅРµ Р±С‹Р»Рѕ. РџРѕС‡С‚Рё.",
-      "Р­С‚Рѕ СѓР¶Рµ С‡С‚Рѕ-С‚Рѕ, РЅРѕ РїРѕРєР° Р±РµР· Р±Р»РµСЃРєР°."
+      "Нервов было больше, чем плана.",
+      "Стыдно не было. Почти.",
+      "Это уже что-то, но пока без блеска."
     ],
     2: [
-      "Р”РµСЂР¶РёС€СЊСЃСЏ. Р СЌС‚Рѕ СѓР¶Рµ РЅРµ РїСѓСЃС‚СЏРє.",
-      "Р РІР°РЅРѕ, РЅРѕ СЃ С…Р°СЂР°РєС‚РµСЂРѕРј.",
-      "РљРѕСЃРјРѕСЃ РїРѕРєР° РЅРµ РІРїРµС‡Р°С‚Р»С‘РЅ, РЅРѕ СЃР»СѓС€Р°РµС‚."
+      "Держишься. И это уже не пустяк.",
+      "Рвано, но с характером.",
+      "Космос пока не впечатлён, но слушает."
     ],
     3: [
-      "РЈР¶Рµ РїРѕС…РѕР¶Рµ РЅР° Р±РѕР№, Р° РЅРµ РЅР° СЃСѓРµС‚Сѓ.",
-      "Р’РѕС‚ С‚РµРїРµСЂСЊ РЅР°С‡РёРЅР°РµС‚СЃСЏ РЅРѕСЂРјР°Р»СЊРЅР°СЏ СЂР°Р±РѕС‚Р°.",
-      "РўС‹ РїРѕС‡С‚Рё СЃРѕР±СЂР°Р» РїСЂРѕС…РѕРґ РІ РєСѓР»Р°Рє."
+      "Уже похоже на бой, а не на суету.",
+      "Вот теперь начинается нормальная работа.",
+      "Ты почти собрал проход в кулак."
     ],
     4: [
-      "РљСЂРµРїРєРёР№ РїСЂРѕС…РѕРґ. Р‘РµР· Р»РёС€РЅРµР№ РґСЂР°РјС‹.",
-      "Р‘РѕСЃСЃ РїР°Р» РЅРµ СЃР»СѓС‡Р°Р№РЅРѕ.",
-      "РЎРѕР»РёРґРЅРѕ. РџР°СѓРєР°Рј РЅРµ РѕС‡РµРЅСЊ РїРѕРЅСЂР°РІРёР»РѕСЃСЊ."
+      "Крепкий проход. Без лишней драмы.",
+      "Босс пал не случайно.",
+      "Солидно. Паучкам не очень понравилось."
     ],
     5: [
-      "РћС‡РµРЅСЊ С…РѕСЂРѕС€РёР№ Р·Р°Р±РµРі. РџСЂСЏРјРѕ СЃ РЅРµСЂРІРѕРј.",
-      "РўС‹ СѓР¶Рµ РїРѕС‡С‚Рё РґРёРєС‚СѓРµС€СЊ С‚РµРјРї.",
-      "Р’РѕС‚ СЌС‚Рѕ СѓРІР°Р¶РёС‚РµР»СЊРЅРѕ."
+      "Очень хороший забег. Прямо с нервом.",
+      "Ты уже почти диктуешь темп.",
+      "Вот это уважительно."
     ],
     6: [
-      "РЎРёР»СЊРЅР°СЏ СЂР°Р±РѕС‚Р°. РўСѓС‚ СѓР¶Рµ РЅРµ РїРѕРІРµР·Р»Рѕ РІСЂР°РіР°Рј.",
-      "РџР°СѓРєРё РІ РїР°РЅРёРєРµ, Рё СЌС‚Рѕ Р·Р°СЃР»СѓР¶РµРЅРЅРѕ.",
-      "РћС‡РµРЅСЊ СѓРІРµСЂРµРЅРЅРѕ, Р±РµР· Р»РёС€РЅРёС… РґС‹СЂ."
+      "Сильная работа. Тут уже не повезло врагам.",
+      "Паучки в панике, и это заслуженно.",
+      "Очень уверенно, без лишних дыр."
     ],
     7: [
-      "РџРѕС‡С‚Рё СЌС‚Р°Р»РѕРЅ. РћСЃС‚Р°Р»РёСЃСЊ РјРµР»РєРёРµ РѕРіСЂРµС…Рё.",
-      "Р РµРґРєРѕ РєС‚Рѕ С‚Р°Рє С‡РёСЃС‚Рѕ Р·Р°РєСЂС‹РІР°РµС‚ Р±РѕР№.",
-      "Р­С‚Рѕ СѓР¶Рµ РѕС‡РµРЅСЊ Р±Р»РёР·РєРѕ Рє РѕР±СЂР°Р·С†РѕРІРѕРјСѓ РїСЂРѕС…РѕРґСѓ."
+      "Почти эталон. Остались мелкие огрехи.",
+      "Редко кто так чисто закрывает бой.",
+      "Это уже очень близко к образцовому проходу."
     ],
     8: [
-      "РџРѕС‡С‚Рё РЅРµРґРѕСЃС‚РёР¶РёРјРѕ. РћС‡РµРЅСЊ РєСЂР°СЃРёРІРѕ.",
-      "Р­С‚Рѕ СѓР¶Рµ РґРµРјРѕРЅСЃС‚СЂР°С†РёСЏ РїСЂРµРІРѕСЃС…РѕРґСЃС‚РІР°.",
-      "РџР°СѓРєР°Рј РїРѕСЂР° РјРµРЅСЏС‚СЊ РїСЂРѕС„РµСЃСЃРёСЋ."
+      "Почти недостижимо. Очень красиво.",
+      "Это уже демонстрация превосходства.",
+      "Паучкам пора менять профессию."
     ]
   };
 }
@@ -5148,7 +5148,7 @@ function explodeEnemyMissile(index) {
   let hitPlayer = false;
 
   if (Math.sqrt(dx * dx + dy * dy) <= 42) {
-    hitPlayer = damagePlayer(1, "Р Р°РєРµС‚Р° РўР°РЅРєР°");
+    hitPlayer = damagePlayer(1, "Ракета танка");
     if (hitPlayer) {
       runStats.tankMissilesHitPlayer++;
     }
@@ -7007,7 +7007,7 @@ function explodeBossDangerZoneMissile(index, hitPlayer = false) {
   });
   createTankCrimsonLightning(centerX, centerY, missile.width + 56, missile.height + 56, 6);
 
-  if (hitPlayer && damagePlayer(1, "Р Р°РєРµС‚Р° Р‘РѕСЃСЃР°")) {
+  if (hitPlayer && damagePlayer(1, "Ракета босса")) {
     runStats.bossMissilesHitPlayer++;
   }
 
@@ -7697,7 +7697,13 @@ function handlePlayerEnemyCollision(enemyIndex) {
     return;
   }
 
-  const collisionReason = enemy.type === "tank" ? "РЎС‚РѕР»РєРЅРѕРІРµРЅРёРµ СЃ РўР°СЂР°РЅРѕРј" : enemy.type === "web" ? "РЎС‚РѕР»РєРЅРѕРІРµРЅРёРµ СЃ РџР°СѓС‡РєРѕРј" : enemy.type === "zigzag" ? "РЎС‚РѕР»РєРЅРѕРІРµРЅРёРµ СЃ Р—РёРіР·Р°РіРѕРј" : "РЎС‚РѕР»РєРЅРѕРІРµРЅРёРµ СЃ РІСЂР°РіРѕРј";
+  const collisionReason = enemy.type === "tank"
+    ? "Столкновение с тараном"
+    : enemy.type === "web"
+      ? "Столкновение с паучком"
+      : enemy.type === "zigzag"
+        ? "Столкновение с зигзагом"
+        : "Столкновение с врагом";
   damagePlayer(1, collisionReason);
   createExplosionParticles(enemy);
 
@@ -7783,7 +7789,7 @@ function checkBossBulletPlayerCollisions() {
     ) {
       const bullet = bossBullets[i];
       bossBullets.splice(i, 1);
-      damagePlayer(1, bullet.bossSpreadBurst ? "Р Р°СЃСЃРµСЏРЅРЅС‹Р№ РІС‹СЃС‚СЂРµР» Р‘РѕСЃСЃР°" : "РЎРЅР°СЂСЏРґ Р‘РѕСЃСЃР°");
+      damagePlayer(1, bullet.bossSpreadBurst ? "Рассеянный выстрел босса" : "Снаряд босса");
     }
   }
 }
@@ -7803,7 +7809,7 @@ function checkBossWebBulletPlayerCollisions() {
         runStats.bossWebShotsHitPlayer++;
       }
 
-      damagePlayer(0.5, "РџР°СѓС‚РёРЅРЅС‹Р№ РІС‹СЃС‚СЂРµР» Р‘РѕСЃСЃР°");
+      damagePlayer(0.5, "Паутинный выстрел босса");
     }
   }
 }
@@ -7831,7 +7837,7 @@ function checkEnemyHazardZonePlayerCollisions() {
         runStats.enemyHazardZonesHitPlayer++;
       }
 
-      damagePlayer(0.1, "РћРїР°СЃРЅР°СЏ Р·РѕРЅР° РўР°СЂР°РЅР°");
+      damagePlayer(0.1, "Опасная зона тарана");
       zone.damageTickTimer = 6;
     }
   }
@@ -7862,7 +7868,7 @@ function checkBossDangerZonePlayerCollision() {
         runStats.bossDangerZonesHitPlayer++;
       }
 
-      damagePlayer(0.1, "РћРїР°СЃРЅР°СЏ Р·РѕРЅР° Р‘РѕСЃСЃР°");
+      damagePlayer(0.1, "Опасная зона босса");
       zone.damageTickTimer = 6;
     }
   }
@@ -7885,7 +7891,7 @@ function checkBossCoreLaserPlayerCollision() {
     player.y + player.height > laserBox.y &&
     bossCoreLaser.damageTickTimer <= 0
   ) {
-    if (damagePlayer(0.3, "Р›Р°Р·РµСЂ Р‘РѕСЃСЃР°")) {
+    if (damagePlayer(0.3, "Лазер босса")) {
       runStats.bossLaserHits++;
     }
     bossCoreLaser.damageTickTimer = 6;
@@ -7905,7 +7911,7 @@ function checkBossPlayerCollision() {
     player.y < bodyHitbox.y + bodyHitbox.height &&
     player.y + player.height > bodyHitbox.y
   ) {
-    damagePlayer(1, "РўРµР»Рѕ Р‘РѕСЃСЃР°");
+    damagePlayer(1, "Тело босса");
   }
 }
 
@@ -7933,7 +7939,7 @@ function checkBossLegPlayerCollisions() {
           player.y < rect.y + rect.height &&
           player.y + player.height > rect.y
         ) {
-          damagePlayer(1, "Р›Р°РїР° Р‘РѕСЃСЃР°");
+          damagePlayer(1, "Лапа босса");
           return;
         }
       }
@@ -7949,13 +7955,13 @@ function checkBossLegPlayerCollisions() {
       player.y < legBox.y + legBox.height &&
       player.y + player.height > legBox.y
     ) {
-      damagePlayer(1, "Р›Р°РїР° Р‘РѕСЃСЃР°");
+      damagePlayer(1, "Лапа босса");
       break;
     }
   }
 }
 
-function damagePlayer(amount = 1, reason = "РќРµРёР·РІРµСЃС‚РЅРѕ") {
+function damagePlayer(amount = 1, reason = "Неизвестно") {
   if (isPlayerInvulnerable) {
     return false;
   }
