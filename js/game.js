@@ -1,4 +1,4 @@
-    const canvas = document.getElementById("game");
+﻿    const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
 let scene = "menu";
 
@@ -37,11 +37,11 @@ window.__startGameFromMenu = function startGameFromMenu() {
 };
 let finalRunResult = null;
 const enemyDisplayNames = {
-  normal: "Таран",
-  web: "Паучок",
-  zigzag: "Зигзаг",
-  tank: "Танк",
-  boss: "Босс"
+  normal: "РўР°СЂР°РЅ",
+  web: "РџР°СѓС‡РѕРє",
+  zigzag: "Р—РёРіР·Р°Рі",
+  tank: "РўР°РЅРє",
+  boss: "Р‘РѕСЃСЃ"
 };
 const enemyVisualScale = {
   normal: 1.15,
@@ -352,22 +352,22 @@ function computeGradePoints() {
 
 function getResultBattleText() {
   if (runStats.bossDefeated) {
-    return "Босс уничтожен";
+    return "Р‘РѕСЃСЃ СѓРЅРёС‡С‚РѕР¶РµРЅ";
   }
 
   if (runStats.bossAppeared) {
-    return "Бой с боссом не завершён";
+    return "Р‘РѕР№ СЃ Р±РѕСЃСЃРѕРј РЅРµ Р·Р°РІРµСЂС€С‘РЅ";
   }
 
   if (runStats.deathReason) {
-    return "Поражение до босса";
+    return "РџРѕСЂР°Р¶РµРЅРёРµ РґРѕ Р±РѕСЃСЃР°";
   }
 
-  return "Забег завершён";
+  return "Р—Р°Р±РµРі Р·Р°РІРµСЂС€С‘РЅ";
 }
 
 function getLeaderboardPlaceText() {
-  return "Таблица не подключена";
+  return "РўР°Р±Р»РёС†Р° РЅРµ РїРѕРґРєР»СЋС‡РµРЅР°";
 }
 
 function getTopDamageReasons(limit = 3) {
@@ -421,49 +421,49 @@ function buildResultGrade() {
 function getGradeCommentPool() {
   return {
     0: [
-      "Пауки даже не вспотели.",
-      "Тебя хватило ненадолго, но шумно.",
-      "Забег свернулся раньше, чем успел разогнаться."
+      "РџР°СѓРєРё РґР°Р¶Рµ РЅРµ РІСЃРїРѕС‚РµР»Рё.",
+      "РўРµР±СЏ С…РІР°С‚РёР»Рѕ РЅРµРЅР°РґРѕР»РіРѕ, РЅРѕ С€СѓРјРЅРѕ.",
+      "Р—Р°Р±РµРі СЃРІРµСЂРЅСѓР»СЃСЏ СЂР°РЅСЊС€Рµ, С‡РµРј СѓСЃРїРµР» СЂР°Р·РѕРіРЅР°С‚СЊСЃСЏ."
     ],
     1: [
-      "Нервов было больше, чем плана.",
-      "Стыдно не было. Почти.",
-      "Это уже что-то, но пока без блеска."
+      "РќРµСЂРІРѕРІ Р±С‹Р»Рѕ Р±РѕР»СЊС€Рµ, С‡РµРј РїР»Р°РЅР°.",
+      "РЎС‚С‹РґРЅРѕ РЅРµ Р±С‹Р»Рѕ. РџРѕС‡С‚Рё.",
+      "Р­С‚Рѕ СѓР¶Рµ С‡С‚Рѕ-С‚Рѕ, РЅРѕ РїРѕРєР° Р±РµР· Р±Р»РµСЃРєР°."
     ],
     2: [
-      "Держишься. И это уже не пустяк.",
-      "Рвано, но с характером.",
-      "Космос пока не впечатлён, но слушает."
+      "Р”РµСЂР¶РёС€СЊСЃСЏ. Р СЌС‚Рѕ СѓР¶Рµ РЅРµ РїСѓСЃС‚СЏРє.",
+      "Р РІР°РЅРѕ, РЅРѕ СЃ С…Р°СЂР°РєС‚РµСЂРѕРј.",
+      "РљРѕСЃРјРѕСЃ РїРѕРєР° РЅРµ РІРїРµС‡Р°С‚Р»С‘РЅ, РЅРѕ СЃР»СѓС€Р°РµС‚."
     ],
     3: [
-      "Уже похоже на бой, а не на суету.",
-      "Вот теперь начинается нормальная работа.",
-      "Ты почти собрал проход в кулак."
+      "РЈР¶Рµ РїРѕС…РѕР¶Рµ РЅР° Р±РѕР№, Р° РЅРµ РЅР° СЃСѓРµС‚Сѓ.",
+      "Р’РѕС‚ С‚РµРїРµСЂСЊ РЅР°С‡РёРЅР°РµС‚СЃСЏ РЅРѕСЂРјР°Р»СЊРЅР°СЏ СЂР°Р±РѕС‚Р°.",
+      "РўС‹ РїРѕС‡С‚Рё СЃРѕР±СЂР°Р» РїСЂРѕС…РѕРґ РІ РєСѓР»Р°Рє."
     ],
     4: [
-      "Крепкий проход. Без лишней драмы.",
-      "Босс пал не случайно.",
-      "Солидно. Паукам не очень понравилось."
+      "РљСЂРµРїРєРёР№ РїСЂРѕС…РѕРґ. Р‘РµР· Р»РёС€РЅРµР№ РґСЂР°РјС‹.",
+      "Р‘РѕСЃСЃ РїР°Р» РЅРµ СЃР»СѓС‡Р°Р№РЅРѕ.",
+      "РЎРѕР»РёРґРЅРѕ. РџР°СѓРєР°Рј РЅРµ РѕС‡РµРЅСЊ РїРѕРЅСЂР°РІРёР»РѕСЃСЊ."
     ],
     5: [
-      "Очень хороший забег. Прямо с нервом.",
-      "Ты уже почти диктуешь темп.",
-      "Вот это уважительно."
+      "РћС‡РµРЅСЊ С…РѕСЂРѕС€РёР№ Р·Р°Р±РµРі. РџСЂСЏРјРѕ СЃ РЅРµСЂРІРѕРј.",
+      "РўС‹ СѓР¶Рµ РїРѕС‡С‚Рё РґРёРєС‚СѓРµС€СЊ С‚РµРјРї.",
+      "Р’РѕС‚ СЌС‚Рѕ СѓРІР°Р¶РёС‚РµР»СЊРЅРѕ."
     ],
     6: [
-      "Сильная работа. Тут уже не повезло врагам.",
-      "Пауки в панике, и это заслуженно.",
-      "Очень уверенно, без лишних дыр."
+      "РЎРёР»СЊРЅР°СЏ СЂР°Р±РѕС‚Р°. РўСѓС‚ СѓР¶Рµ РЅРµ РїРѕРІРµР·Р»Рѕ РІСЂР°РіР°Рј.",
+      "РџР°СѓРєРё РІ РїР°РЅРёРєРµ, Рё СЌС‚Рѕ Р·Р°СЃР»СѓР¶РµРЅРЅРѕ.",
+      "РћС‡РµРЅСЊ СѓРІРµСЂРµРЅРЅРѕ, Р±РµР· Р»РёС€РЅРёС… РґС‹СЂ."
     ],
     7: [
-      "Почти эталон. Остались мелкие огрехи.",
-      "Редко кто так чисто закрывает бой.",
-      "Это уже очень близко к образцовому проходу."
+      "РџРѕС‡С‚Рё СЌС‚Р°Р»РѕРЅ. РћСЃС‚Р°Р»РёСЃСЊ РјРµР»РєРёРµ РѕРіСЂРµС…Рё.",
+      "Р РµРґРєРѕ РєС‚Рѕ С‚Р°Рє С‡РёСЃС‚Рѕ Р·Р°РєСЂС‹РІР°РµС‚ Р±РѕР№.",
+      "Р­С‚Рѕ СѓР¶Рµ РѕС‡РµРЅСЊ Р±Р»РёР·РєРѕ Рє РѕР±СЂР°Р·С†РѕРІРѕРјСѓ РїСЂРѕС…РѕРґСѓ."
     ],
     8: [
-      "Почти недостижимо. Очень красиво.",
-      "Это уже демонстрация превосходства.",
-      "Паукам пора менять профессию."
+      "РџРѕС‡С‚Рё РЅРµРґРѕСЃС‚РёР¶РёРјРѕ. РћС‡РµРЅСЊ РєСЂР°СЃРёРІРѕ.",
+      "Р­С‚Рѕ СѓР¶Рµ РґРµРјРѕРЅСЃС‚СЂР°С†РёСЏ РїСЂРµРІРѕСЃС…РѕРґСЃС‚РІР°.",
+      "РџР°СѓРєР°Рј РїРѕСЂР° РјРµРЅСЏС‚СЊ РїСЂРѕС„РµСЃСЃРёСЋ."
     ]
   };
 }
@@ -479,12 +479,13 @@ function finalizeRunResult(outcome) {
   runStats.bossDangerZonesSurvived = Math.max(0, runStats.bossDangerZonesSpawned - runStats.bossDangerZonesHitPlayer);
   const grade = buildResultGrade();
   finalRunResult = {
-    outcome: outcome,
-    grade: grade,
+    outcome,
+    grade,
     comment: getResultComment(grade.index),
     battleText: getResultBattleText(),
     leaderboardText: getLeaderboardPlaceText(),
-    score: score,
+    score,
+    threatReasons: getTopDamageReasons(3),
     destroyedTotal:
       runStats.enemyKills.normal +
       runStats.enemyKills.web +
@@ -493,29 +494,36 @@ function finalizeRunResult(outcome) {
       runStats.enemyKills.bossLeg +
       runStats.enemyKills.boss,
     bossAppeared: runStats.bossAppeared,
+    bossDefeated: runStats.bossDefeated,
     deathReason: runStats.deathReason || "",
-    failureReasons: getTopDamageReasons(3),
     missionSeconds: Math.floor(missionTimer / 60),
     missionTimeText: formatMissionTime(),
     totalDamageText: formatStatNumber(runStats.damageTaken, 1),
     hitsText: String(runStats.hitCount),
     criticalTimeText: formatTimeFromFrames(runStats.criticalHpFrames),
-    detailRows: [
-      { label: "ТАРАНЫ", value: runStats.enemyKills.normal },
-      { label: "ПАУЧКИ", value: runStats.enemyKills.web },
-      { label: "ЗИГЗАГИ", value: runStats.enemyKills.zigzag },
-      { label: "ТАНКИ", value: runStats.enemyKills.tank },
-      { label: "ЛАПЫ БОССА", value: runStats.enemyKills.bossLeg },
-      { label: "БОСС УНИЧТОЖЕН", value: runStats.bossDefeated ? "ДА" : "НЕТ" },
-      { label: "УРОН", value: formatStatNumber(runStats.damageTaken, 1) },
-      { label: "ПОПАДАНИЯ", value: runStats.hitCount },
-      { label: "ЗАМЕДЛЕНИЙ", value: runStats.webSlowApplications },
-      { label: "РАКЕТ ТАНКА", value: runStats.tankMissilesSurvived },
-      { label: "ОПАСНЫХ ЗОН", value: runStats.enemyHazardZonesSurvived + runStats.bossDangerZonesSurvived },
-      { label: "CRIT HP", value: formatTimeFromFrames(runStats.criticalHpFrames) }
-    ]
+    criticalHpFrames: runStats.criticalHpFrames,
+    destroyedStats: {
+      normal: runStats.enemyKills.normal,
+      web: runStats.enemyKills.web,
+      zigzag: runStats.enemyKills.zigzag,
+      tank: runStats.enemyKills.tank,
+      bossLeg: runStats.enemyKills.bossLeg,
+      boss: runStats.enemyKills.boss
+    },
+    damageStats: {
+      hits: runStats.hitCount,
+      damageTaken: runStats.damageTaken,
+      slows: runStats.webSlowApplications
+    },
+    threatStats: {
+      tankMissilesLaunched: runStats.tankMissilesLaunched,
+      tankMissilesHitPlayer: runStats.tankMissilesHitPlayer,
+      enemyHazardZonesSpawned: runStats.enemyHazardZonesSpawned,
+      enemyHazardZonesHitPlayer: runStats.enemyHazardZonesHitPlayer,
+      bossDangerZonesSpawned: runStats.bossDangerZonesSpawned,
+      bossDangerZonesHitPlayer: runStats.bossDangerZonesHitPlayer
+    }
   };
-
   if (typeof window.__showRunResult === "function") {
     window.__showRunResult(finalRunResult);
   }
@@ -3421,7 +3429,7 @@ window.__bossResearch = {
 };
 
 
-    // Игрок теперь гарантированно виден
+    // РРіСЂРѕРє С‚РµРїРµСЂСЊ РіР°СЂР°РЅС‚РёСЂРѕРІР°РЅРЅРѕ РІРёРґРµРЅ
     const player = {
       x: canvas.width / 2 - 20,
       y: canvas.height - 80,
@@ -4319,7 +4327,7 @@ function movePlayer() {
   playerVisualPitch += (targetPitch - playerVisualPitch) * 0.2;
   playerVisualPitch = Math.max(-playerVerticalBankMax, Math.min(playerVerticalBankMax, playerVisualPitch));
 
-  // Границы экрана
+  // Р“СЂР°РЅРёС†С‹ СЌРєСЂР°РЅР°
 
   if (player.x < 0) {
     player.x = 0;
@@ -5140,7 +5148,7 @@ function explodeEnemyMissile(index) {
   let hitPlayer = false;
 
   if (Math.sqrt(dx * dx + dy * dy) <= 42) {
-    hitPlayer = damagePlayer(1, "Ракета Танка");
+    hitPlayer = damagePlayer(1, "Р Р°РєРµС‚Р° РўР°РЅРєР°");
     if (hitPlayer) {
       runStats.tankMissilesHitPlayer++;
     }
@@ -6999,7 +7007,7 @@ function explodeBossDangerZoneMissile(index, hitPlayer = false) {
   });
   createTankCrimsonLightning(centerX, centerY, missile.width + 56, missile.height + 56, 6);
 
-  if (hitPlayer && damagePlayer(1, "Ракета Босса")) {
+  if (hitPlayer && damagePlayer(1, "Р Р°РєРµС‚Р° Р‘РѕСЃСЃР°")) {
     runStats.bossMissilesHitPlayer++;
   }
 
@@ -7689,7 +7697,7 @@ function handlePlayerEnemyCollision(enemyIndex) {
     return;
   }
 
-  const collisionReason = enemy.type === "tank" ? "Столкновение с Тараном" : enemy.type === "web" ? "Столкновение с Паучком" : enemy.type === "zigzag" ? "Столкновение с Зигзагом" : "Столкновение с врагом";
+  const collisionReason = enemy.type === "tank" ? "РЎС‚РѕР»РєРЅРѕРІРµРЅРёРµ СЃ РўР°СЂР°РЅРѕРј" : enemy.type === "web" ? "РЎС‚РѕР»РєРЅРѕРІРµРЅРёРµ СЃ РџР°СѓС‡РєРѕРј" : enemy.type === "zigzag" ? "РЎС‚РѕР»РєРЅРѕРІРµРЅРёРµ СЃ Р—РёРіР·Р°РіРѕРј" : "РЎС‚РѕР»РєРЅРѕРІРµРЅРёРµ СЃ РІСЂР°РіРѕРј";
   damagePlayer(1, collisionReason);
   createExplosionParticles(enemy);
 
@@ -7721,7 +7729,7 @@ function checkEnemyBulletPlayerCollisions() {
       } else {
         const damage = bullet.damage || 1;
         enemyBullets.splice(i, 1);
-        const reason = bullet.bossSpreadBurst ? "Рассеянный выстрел Босса" : bullet.zigzagVolleySourceEnemy ? "Выстрел Зигзага" : "Снаряд врага";
+        const reason = bullet.bossSpreadBurst ? "Р Р°СЃСЃРµСЏРЅРЅС‹Р№ РІС‹СЃС‚СЂРµР» Р‘РѕСЃСЃР°" : bullet.zigzagVolleySourceEnemy ? "Р’С‹СЃС‚СЂРµР» Р—РёРіР·Р°РіР°" : "РЎРЅР°СЂСЏРґ РІСЂР°РіР°";
         damagePlayer(damage, reason);
       }
     }
@@ -7775,7 +7783,7 @@ function checkBossBulletPlayerCollisions() {
     ) {
       const bullet = bossBullets[i];
       bossBullets.splice(i, 1);
-      damagePlayer(1, bullet.bossSpreadBurst ? "Рассеянный выстрел Босса" : "Снаряд Босса");
+      damagePlayer(1, bullet.bossSpreadBurst ? "Р Р°СЃСЃРµСЏРЅРЅС‹Р№ РІС‹СЃС‚СЂРµР» Р‘РѕСЃСЃР°" : "РЎРЅР°СЂСЏРґ Р‘РѕСЃСЃР°");
     }
   }
 }
@@ -7795,7 +7803,7 @@ function checkBossWebBulletPlayerCollisions() {
         runStats.bossWebShotsHitPlayer++;
       }
 
-      damagePlayer(0.5, "Паутинный выстрел Босса");
+      damagePlayer(0.5, "РџР°СѓС‚РёРЅРЅС‹Р№ РІС‹СЃС‚СЂРµР» Р‘РѕСЃСЃР°");
     }
   }
 }
@@ -7823,7 +7831,7 @@ function checkEnemyHazardZonePlayerCollisions() {
         runStats.enemyHazardZonesHitPlayer++;
       }
 
-      damagePlayer(0.1, "Опасная зона Тарана");
+      damagePlayer(0.1, "РћРїР°СЃРЅР°СЏ Р·РѕРЅР° РўР°СЂР°РЅР°");
       zone.damageTickTimer = 6;
     }
   }
@@ -7854,7 +7862,7 @@ function checkBossDangerZonePlayerCollision() {
         runStats.bossDangerZonesHitPlayer++;
       }
 
-      damagePlayer(0.1, "Опасная зона Босса");
+      damagePlayer(0.1, "РћРїР°СЃРЅР°СЏ Р·РѕРЅР° Р‘РѕСЃСЃР°");
       zone.damageTickTimer = 6;
     }
   }
@@ -7877,7 +7885,7 @@ function checkBossCoreLaserPlayerCollision() {
     player.y + player.height > laserBox.y &&
     bossCoreLaser.damageTickTimer <= 0
   ) {
-    if (damagePlayer(0.3, "Лазер Босса")) {
+    if (damagePlayer(0.3, "Р›Р°Р·РµСЂ Р‘РѕСЃСЃР°")) {
       runStats.bossLaserHits++;
     }
     bossCoreLaser.damageTickTimer = 6;
@@ -7897,7 +7905,7 @@ function checkBossPlayerCollision() {
     player.y < bodyHitbox.y + bodyHitbox.height &&
     player.y + player.height > bodyHitbox.y
   ) {
-    damagePlayer(1, "Тело Босса");
+    damagePlayer(1, "РўРµР»Рѕ Р‘РѕСЃСЃР°");
   }
 }
 
@@ -7925,7 +7933,7 @@ function checkBossLegPlayerCollisions() {
           player.y < rect.y + rect.height &&
           player.y + player.height > rect.y
         ) {
-          damagePlayer(1, "Лапа Босса");
+          damagePlayer(1, "Р›Р°РїР° Р‘РѕСЃСЃР°");
           return;
         }
       }
@@ -7941,13 +7949,13 @@ function checkBossLegPlayerCollisions() {
       player.y < legBox.y + legBox.height &&
       player.y + player.height > legBox.y
     ) {
-      damagePlayer(1, "Лапа Босса");
+      damagePlayer(1, "Р›Р°РїР° Р‘РѕСЃСЃР°");
       break;
     }
   }
 }
 
-function damagePlayer(amount = 1, reason = "Неизвестно") {
+function damagePlayer(amount = 1, reason = "РќРµРёР·РІРµСЃС‚РЅРѕ") {
   if (isPlayerInvulnerable) {
     return false;
   }
@@ -11746,7 +11754,7 @@ function drawBossDeathOverlay() {
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffffff";
     ctx.font = (58 + pulse) + "px Arial";
-    ctx.fillText("ПОБЕДА!", canvas.width / 2, canvas.height / 2 - 20);
+    ctx.fillText("РџРћР‘Р•Р”Рђ!", canvas.width / 2, canvas.height / 2 - 20);
     ctx.restore();
   }
 }
@@ -11762,9 +11770,9 @@ function drawBossIntroWarning() {
   ctx.textAlign = "center";
   ctx.fillStyle = blink ? "#ff3333" : "#ffffff";
   ctx.font = "44px Arial";
-  ctx.fillText("ВНИМАНИЕ", canvas.width / 2, canvas.height / 2 - 55);
+  ctx.fillText("Р’РќРРњРђРќРР•", canvas.width / 2, canvas.height / 2 - 55);
   ctx.font = "30px Arial";
-  ctx.fillText("ОБНАРУЖЕН КИБЕРПАУК", canvas.width / 2, canvas.height / 2);
+  ctx.fillText("РћР‘РќРђР РЈР–Р•Рќ РљРР‘Р•Р РџРђРЈРљ", canvas.width / 2, canvas.height / 2);
   ctx.restore();
 }
 

@@ -466,6 +466,135 @@
       font-weight: 700;
     }
 
+    .terminal-results__result-summary {
+      display: grid;
+      gap: 10px;
+    }
+
+    .terminal-results__result-lead {
+      color: var(--text);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      line-height: 1.55;
+      font-size: 13px;
+    }
+
+    .terminal-results__result-threats {
+      display: grid;
+      gap: 8px;
+    }
+
+    .terminal-results__result-threat {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 12px;
+      border: 1px solid rgba(117, 162, 218, 0.16);
+      background: linear-gradient(180deg, rgba(29, 38, 51, 0.92), rgba(18, 24, 33, 0.92));
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-size: 12px;
+    }
+
+    .terminal-results__result-threat-index {
+      color: var(--accent);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+    }
+
+    .terminal-results__result-threat-text {
+      color: var(--text);
+      text-align: left;
+    }
+
+    .terminal-results__panel--wide {
+      width: 100%;
+    }
+
+    .terminal-results__detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+
+    .terminal-results__detail-column {
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .terminal-results__detail-group {
+      display: grid;
+      gap: 10px;
+      padding: 14px 15px 15px;
+      border: 1px solid rgba(117, 162, 218, 0.16);
+      background: linear-gradient(180deg, rgba(16, 22, 31, 0.86), rgba(21, 29, 40, 0.96));
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+    }
+
+    .terminal-results__detail-title {
+      color: var(--accent);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .terminal-results__detail-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .terminal-results__detail-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 8px 10px;
+      border: 1px solid rgba(117, 162, 218, 0.12);
+      background: rgba(11, 16, 24, 0.28);
+      clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+    }
+
+    .terminal-results__detail-label,
+    .terminal-results__detail-value {
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .terminal-results__detail-label {
+      color: var(--muted);
+    }
+
+    .terminal-results__detail-value {
+      color: var(--text);
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .terminal-results__detail-value--accent {
+      color: #ff7d58;
+      text-shadow: 0 0 10px rgba(255, 117, 72, 0.28);
+    }
+
+    .terminal-results__detail-grid--single {
+      grid-template-columns: 1fr;
+    }
+
+    @media (max-width: 900px) {
+      .terminal-results__summary,
+      .terminal-results__detail-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .terminal-results__block {
       display: grid;
       gap: 8px;
@@ -1172,23 +1301,51 @@
                     <div class="terminal-results__metric-value">ДА</div>
                   </div>
                 </div>
-                <div class="terminal-results__two-col">
-                  <section class="terminal-results__panel">
-                    <div class="terminal-results__panel-title">3 ГЛАВНЫЕ ПРИЧИНЫ</div>
-                    <div class="terminal-results__reasons">
-                      <div class="terminal-results__reason">1. ПЕРЕГРУЗ ПО ДВИЖЕНИЮ ВО ВТОРОЙ ВОЛНЕ</div>
-                      <div class="terminal-results__reason">2. ПОТЕРЯ КОНТРОЛЯ НА УЗКОМ ПРОХОДЕ</div>
-                      <div class="terminal-results__reason">3. ОПОЗДАНИЕ С РЕАКЦИЕЙ НА БОССА</div>
+                <section class="terminal-results__result-summary terminal-results__panel terminal-results__panel--wide">
+                  <div class="terminal-results__panel-title">ИТОГ ЗАБЕГА</div>
+                  <div class="terminal-results__result-lead">ПОБЕДА ПОДТВЕРЖДЕНА. ОСНОВНЫЕ УГРОЗЫ ЗАБЕГА:</div>
+                  <div class="terminal-results__result-threats">
+                    <div class="terminal-results__result-threat">
+                      <div class="terminal-results__result-threat-index">01</div>
+                      <div class="terminal-results__result-threat-text">СНАРЯДЫ ВРАГА ×4</div>
+                    </div>
+                    <div class="terminal-results__result-threat">
+                      <div class="terminal-results__result-threat-index">02</div>
+                      <div class="terminal-results__result-threat-text">ЛАПЫ БОССА ×3</div>
+                    </div>
+                    <div class="terminal-results__result-threat">
+                      <div class="terminal-results__result-threat-index">03</div>
+                      <div class="terminal-results__result-threat-text">РАКЕТЫ ТАНКОВ ×2</div>
+                    </div>
+                  </div>
+                </section>
+                <div class="terminal-results__detail-grid">
+                  <section class="terminal-results__detail-group">
+                    <div class="terminal-results__detail-title">УНИЧТОЖЕНО</div>
+                    <div class="terminal-results__detail-list">
+                      <div class="terminal-results__detail-row"><div class="terminal-results__detail-label">Тараны</div><div class="terminal-results__detail-value">27</div></div>
+                      <div class="terminal-results__detail-row"><div class="terminal-results__detail-label">Паучки</div><div class="terminal-results__detail-value">18</div></div>
+                      <div class="terminal-results__detail-row"><div class="terminal-results__detail-label">Зигзаги</div><div class="terminal-results__detail-value">20</div></div>
+                      <div class="terminal-results__detail-row"><div class="terminal-results__detail-label">Танки</div><div class="terminal-results__detail-value">12</div></div>
+                      <div class="terminal-results__detail-row"><div class="terminal-results__detail-label">Лапы босса</div><div class="terminal-results__detail-value">7</div></div>
                     </div>
                   </section>
-                  <section class="terminal-results__panel">
-                    <div class="terminal-results__panel-title">КОММЕНТАРИЙ ЗАБЕГА</div>
-                    <div class="terminal-results__comment">
-                      <strong>ХОРОШИЙ СТАРТ</strong>, НО К КОНЦУ МИССИИ ИГРА СЛИШКОМ РАЗОГНАЛАСЬ.
-                      ЕЩЁ НЕМНОГО ТОНЬШЕ БЫ РАБОТАТЬ С ПОЗИЦИОНИРОВАНИЕМ И ВРЕМЕНЕМ РЕАКЦИИ.
+                  <section class="terminal-results__detail-group">
+                    <div class="terminal-results__detail-title">ПОЛУЧЕННЫЙ УРОН</div>
+                    <div class="terminal-results__detail-list">
+                      <div class="terminal-results__detail-row"><div class="terminal-results__detail-label">Попаданий</div><div class="terminal-results__detail-value">4</div></div>
+                      <div class="terminal-results__detail-row"><div class="terminal-results__detail-label">Получено урона</div><div class="terminal-results__detail-value">12.0</div></div>
+                      <div class="terminal-results__detail-row"><div class="terminal-results__detail-label">Замедлений</div><div class="terminal-results__detail-value">6</div></div>
                     </div>
                   </section>
                 </div>
+                <section class="terminal-results__panel terminal-results__panel--wide">
+                  <div class="terminal-results__panel-title">КОММЕНТАРИЙ ЗАБЕГА</div>
+                  <div class="terminal-results__comment">
+                    <strong>ХОРОШИЙ СТАРТ</strong>, НО К КОНЦУ МИССИИ ИГРА СЛИШКОМ РАЗОГНАЛАСЬ.
+                    ЕЩЁ НЕМНОГО ТОНЬШЕ БЫ РАБОТАТЬ С ПОЗИЦИОНИРОВАНИЕМ И ВРЕМЕНЕМ РЕАКЦИИ.
+                  </div>
+                </section>
               </div>
             </div>
             <div class="terminal-shell__footer">
@@ -1249,6 +1406,30 @@
       }
     }
 
+    function formatResultThreatLabel(reason) {
+      if (!reason) {
+        return "-";
+      }
+
+      const friendlyLabelMap = {
+        "Снаряд врага": "Снаряды врага",
+        "Удар дрона": "Удары дрона",
+        "Осколки": "Осколки",
+        "Лапа босса": "Лапы босса",
+        "Ракета танка": "Ракеты танков",
+        "Опасная зона": "Опасные зоны"
+      };
+
+      if (typeof reason === "string") {
+        return friendlyLabelMap[reason] || reason;
+      }
+
+      const label = friendlyLabelMap[reason.reason] || reason.reason || "-";
+      const count = Number.isFinite(reason.count) ? reason.count : null;
+
+      return count !== null ? `${label} ×${count}` : label;
+    }
+
     function renderResultRows() {
       if (!currentResultData) {
         resultBody.innerHTML = "";
@@ -1256,34 +1437,81 @@
         return;
       }
 
+      const summaryRows = [
+        { label: "ОЦЕНКА", value: currentResultData.grade?.label || "-", grade: true },
+        { label: "ОЧКИ", value: currentResultData.score ?? 0 },
+        { label: "ВРЕМЯ", value: currentResultData.missionTimeText || "-" },
+        { label: "УНИЧТОЖЕНО", value: Number.isFinite(currentResultData.destroyedTotal) ? currentResultData.destroyedTotal : "-" },
+        { label: "БОСС", value: currentResultData.bossAppeared ? "ДА" : "НЕТ" }
+      ];
+
+      const threatReasons = (currentResultData.threatReasons || currentResultData.failureReasons || [])
+        .filter(Boolean)
+        .slice(0, 3)
+        .map(formatResultThreatLabel);
+
+      const summaryLead = currentResultData.outcome === "victory"
+        ? "ПОБЕДА ПОДТВЕРЖДЕНА. ОСНОВНЫЕ УГРОЗЫ ЗАБЕГА:"
+        : "ПРИЧИНЫ ПОРАЖЕНИЯ:";
+
+      const summaryThreatsMarkup = threatReasons.length > 0
+        ? threatReasons.map((reason, index) => `
+            <div class="terminal-results__result-threat">
+              <div class="terminal-results__result-threat-index">${String(index + 1).padStart(2, "0")}</div>
+              <div class="terminal-results__result-threat-text">${reason}</div>
+            </div>
+          `).join("")
+        : `<div class="terminal-results__result-threat">
+            <div class="terminal-results__result-threat-index">--</div>
+            <div class="terminal-results__result-threat-text">НЕТ ДАННЫХ О ЯВНЫХ УГРОЗАХ</div>
+          </div>`;
+
+      const destroyedStats = currentResultData.destroyedStats || {};
+      const damageStats = currentResultData.damageStats || {};
+      const threatStats = currentResultData.threatStats || {};
+      const commentText = currentResultData.comment || "-";
+
       if (resultDetailsExpanded) {
-        const detailRows = currentResultData.detailRows || [];
-        resultBody.innerHTML = detailRows
-          .map((row) => `<div class="page-row">${row.label}: ${row.value}</div>`)
-          .join("");
-      } else {
-        const failureReasons = (currentResultData.failureReasons || [])
-          .filter(Boolean)
-          .slice(0, 3);
-        const bossText = currentResultData.bossAppeared ? "ДА" : "НЕТ";
-        const summaryRows = [
-          { label: "ОЦЕНКА", value: currentResultData.grade?.label || "-" },
-          { label: "ОЧКИ", value: currentResultData.score ?? 0 },
-          { label: "ВРЕМЯ", value: currentResultData.missionTimeText || "-" },
-          { label: "УНИЧТОЖЕНО", value: Number.isFinite(currentResultData.destroyedTotal) ? currentResultData.destroyedTotal : "-" },
-          { label: "БОСС", value: bossText }
+        const detailGroups = [
+          {
+            title: "УНИЧТОЖЕНО",
+            rows: [
+              { label: "Тараны", value: destroyedStats.normal ?? "-" },
+              { label: "Паучки", value: destroyedStats.web ?? "-" },
+              { label: "Зигзаги", value: destroyedStats.zigzag ?? "-" },
+              { label: "Танки", value: destroyedStats.tank ?? "-" },
+              { label: "Лапы босса", value: destroyedStats.bossLeg ?? "-" }
+            ]
+          },
+          {
+            title: "БОСС",
+            rows: [
+              { label: "Уничтожен", value: currentResultData.bossDefeated ? "ДА" : "НЕТ", accent: true }
+            ]
+          },
+          {
+            title: "ПОЛУЧЕННЫЙ УРОН",
+            rows: [
+              { label: "Попаданий", value: damageStats.hits ?? currentResultData.hitsText ?? "-" },
+              { label: "Получено урона", value: Number.isFinite(damageStats.damageTaken) ? damageStats.damageTaken : currentResultData.totalDamageText || "-" },
+              { label: "Замедлений", value: damageStats.slows ?? "-" }
+            ]
+          },
+          {
+            title: "ОПАСНОСТИ",
+            rows: [
+              { label: "Ракеты танков", value: Number.isFinite(threatStats.tankMissilesLaunched) ? threatStats.tankMissilesLaunched : "-" },
+              { label: "Опасные зоны", value: Number.isFinite(threatStats.enemyHazardZonesSpawned) || Number.isFinite(threatStats.bossDangerZonesSpawned)
+                ? (Number(threatStats.enemyHazardZonesSpawned || 0) + Number(threatStats.bossDangerZonesSpawned || 0))
+                : "-" },
+              { label: "Время на критическом HP", value: currentResultData.criticalTimeText || "-" }
+            ]
+          }
         ];
-
-        const reasonsMarkup = failureReasons.length > 0
-          ? failureReasons.map((reason, index) => {
-              const text = typeof reason === "string"
-                ? reason
-                : `${reason.reason}${Number.isFinite(reason.count) ? ` ×${reason.count}` : ""}`;
-              return `<div class="terminal-results__reason">${index + 1}. ${text}</div>`;
-            }).join("")
-          : `<div class="terminal-results__reason">НЕТ ДАННЫХ О ЯВНЫХ ПРИЧИНАХ</div>`;
-
-        const commentText = currentResultData.comment || "-";
+        const detailColumns = [
+          [detailGroups[0], detailGroups[2]],
+          [detailGroups[1], detailGroups[3]]
+        ];
 
         resultBody.innerHTML = `
           <div class="terminal-results__layout">
@@ -1291,22 +1519,53 @@
               ${summaryRows.map((row) => `
                 <div class="terminal-results__metric">
                   <div class="terminal-results__metric-label">${row.label}</div>
-                  <div class="terminal-results__metric-value${row.label === "ОЦЕНКА" ? " terminal-results__metric-value--grade" : ""}">${row.value}</div>
+                  <div class="terminal-results__metric-value${row.grade ? " terminal-results__metric-value--grade" : ""}">${row.value}</div>
                 </div>
               `).join("")}
             </div>
-            <div class="terminal-results__two-col">
-              <section class="terminal-results__panel">
-                <div class="terminal-results__panel-title">3 ГЛАВНЫЕ ПРИЧИНЫ</div>
-                <div class="terminal-results__reasons">
-                  ${reasonsMarkup}
+            <div class="terminal-results__detail-grid">
+              ${detailColumns.map((column) => `
+                <div class="terminal-results__detail-column">
+                  ${column.map((group) => `
+                    <section class="terminal-results__detail-group">
+                      <div class="terminal-results__detail-title">${group.title}</div>
+                      <div class="terminal-results__detail-list">
+                        ${group.rows.map((row) => `
+                          <div class="terminal-results__detail-row">
+                            <div class="terminal-results__detail-label">${row.label}</div>
+                            <div class="terminal-results__detail-value${row.accent ? " terminal-results__detail-value--accent" : ""}">${row.value}</div>
+                          </div>
+                        `).join("")}
+                      </div>
+                    </section>
+                  `).join("")}
                 </div>
-              </section>
-              <section class="terminal-results__panel">
-                <div class="terminal-results__panel-title">КОММЕНТАРИЙ ЗАБЕГА</div>
-                <div class="terminal-results__comment">${commentText}</div>
-              </section>
+              `).join("")}
             </div>
+          </div>
+        `;
+      } else {
+        resultBody.innerHTML = `
+          <div class="terminal-results__layout">
+            <div class="terminal-results__summary">
+              ${summaryRows.map((row) => `
+                <div class="terminal-results__metric">
+                  <div class="terminal-results__metric-label">${row.label}</div>
+                  <div class="terminal-results__metric-value${row.grade ? " terminal-results__metric-value--grade" : ""}">${row.value}</div>
+                </div>
+              `).join("")}
+            </div>
+            <section class="terminal-results__result-summary terminal-results__panel terminal-results__panel--wide">
+              <div class="terminal-results__panel-title">ИТОГ ЗАБЕГА</div>
+              <div class="terminal-results__result-lead">${summaryLead}</div>
+              <div class="terminal-results__result-threats">
+                ${summaryThreatsMarkup}
+              </div>
+            </section>
+            <section class="terminal-results__panel terminal-results__panel--wide">
+              <div class="terminal-results__panel-title">КОММЕНТАРИЙ ЗАБЕГА</div>
+              <div class="terminal-results__comment">${commentText}</div>
+            </section>
           </div>
         `;
       }
