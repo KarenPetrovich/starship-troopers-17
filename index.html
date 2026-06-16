@@ -1,31 +1,1552 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Мой первый vertical shooter</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cyber Spider Shooter</title>
   <style>
-    body {
+    @font-face {
+      font-family: "BoldPixels";
+      src: url("assets/fonts/BoldPixels-v1.6-Font/BoldPixels.ttf") format("truetype");
+      font-display: swap;
+    }
+
+    @import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Rajdhani:wght@400;500;600;700&display=swap");
+
+    :root {
+      color-scheme: dark;
+      --bg: #05070b;
+      --panel: #0d121a;
+      --panel-2: #151c27;
+      --line: rgba(117, 162, 218, 0.32);
+      --line-strong: rgba(104, 208, 255, 0.62);
+      --text: #eef4ff;
+      --muted: #98a8be;
+      --accent: #68d0ff;
+      --accent-2: #a1ff73;
+      --shadow: rgba(0, 0, 0, 0.55);
+      --menu-button-width: min(340px, calc(100vw - 32px));
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
       margin: 0;
-      background: #111;
       overflow: hidden;
-      font-family: Arial, sans-serif;
-      height: 100vh;
+      background: var(--bg);
+    }
+
+    body {
       position: relative;
+      font-family: "Orbitron", "Rajdhani", "Bahnschrift", "Segoe UI Semibold", sans-serif;
+      color: var(--text);
+    }
+
+    body.menu-screen {
+      background:
+        url("assets/ui/111.png") center center / cover no-repeat,
+        var(--bg);
+    }
+
+    body.menu-screen::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 6, 10, 0.28);
+      pointer-events: none;
+      z-index: 1;
     }
 
     canvas {
       display: block;
-      background: #050510;
-      box-shadow: 0 0 0 2px #222;
       position: fixed;
+      left: 0;
+      top: 0;
+      background: #050510;
+    }
+
+    .ui-root {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    .ui-root[hidden] {
+      display: none !important;
+    }
+
+    .menu-buttons[hidden],
+    .page-shell[hidden] {
+      display: none !important;
+    }
+
+    .page-header[hidden] {
+      display: none !important;
+    }
+
+    .menu-buttons,
+    .page-shell {
+      pointer-events: auto;
+    }
+
+    .menu-buttons {
+      position: fixed;
+      left: 50%;
+      top: 41%;
+      transform: translate(-50%, -50%);
+      width: var(--menu-button-width);
+      z-index: 4;
+    }
+
+    .menu-brand {
+      position: absolute;
+      left: 50%;
+      bottom: 100%;
+      width: min(620px, 92vw);
+      margin-bottom: 34px;
+      transform: translateX(-50%);
+      text-align: center;
+      pointer-events: none;
+      user-select: none;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      text-shadow: 0 2px 14px rgba(0, 0, 0, 0.88);
+    }
+
+    .menu-brand__title {
+      display: block;
+      font-family: "BoldPixels", "Orbitron", "Rajdhani", sans-serif;
+      font-size: clamp(28px, 3.4vw, 48px);
+      font-weight: 800;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .menu-brand__stars {
+      font-family: "Orbitron", "Rajdhani", sans-serif;
+      font-size: clamp(12px, 1.35vw, 18px);
+      font-weight: 700;
+      letter-spacing: 0.42em;
+      line-height: 1;
+      color: #ff2a2a;
+      text-shadow:
+        0 0 10px rgba(255, 0, 0, 0.55),
+        0 0 22px rgba(255, 48, 48, 0.32);
+    }
+
+    .menu-brand__rule {
+      width: min(220px, 44vw);
+      margin: 14px auto 0;
+      border-bottom: 1px solid #ff1f1f;
+      opacity: 1;
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    }
+
+    .menu-brand__stars--top {
+      display: none;
+    }
+
+    .menu-brand__rule {
+      display: block;
+    }
+
+    .menu-brand__stars--bottom {
+      margin-top: 8px;
+      display: block;
+    }
+
+    .menu-list {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .menu-button {
+      font-family: "BoldPixels", "Orbitron", "Rajdhani", sans-serif;
+      width: var(--menu-button-width);
+      aspect-ratio: 1217 / 154;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border: 0;
+      background:
+        url("assets/ui/menu_button_01.png") center center / 100% 100% no-repeat;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      position: relative;
+      text-align: center;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.72);
+      overflow: visible;
+      transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+      filter: brightness(1) saturate(1);
+    }
+
+    .menu-button span {
+      position: relative;
+      z-index: 1;
+      display: inline-block;
+      transform: translateY(4px);
+    }
+
+    .menu-button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 6.5% 51%, rgba(255, 98, 40, 0.38), transparent 6%),
+        radial-gradient(circle at 93.5% 51%, rgba(255, 98, 40, 0.38), transparent 6%);
+      opacity: 0.72;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      transition: opacity 120ms ease, background 120ms ease;
+    }
+
+    .menu-button:hover,
+    .menu-button:focus-visible {
+      outline: none;
+      color: #ffffff;
+      transform: translateY(-1px);
+      filter: brightness(1.06) saturate(1.08);
+      box-shadow:
+        0 0 0 1px rgba(255, 96, 52, 0.06) inset,
+        0 0 8px rgba(255, 96, 52, 0.08);
+    }
+
+    .menu-button:hover::before,
+    .menu-button:focus-visible::before {
+      opacity: 1;
+      background:
+        radial-gradient(circle at 6.5% 51%, rgba(255, 128, 72, 0.5), transparent 6%),
+        radial-gradient(circle at 93.5% 51%, rgba(255, 128, 72, 0.5), transparent 6%);
+    }
+
+    .menu-button.is-clicked {
+      outline: none;
+      color: #ff2f2f;
+      transform: translateY(-1px);
+      filter: brightness(1.17) saturate(1.22);
+      box-shadow:
+        0 0 0 1px rgba(255, 102, 56, 0.18) inset,
+        0 0 24px rgba(255, 86, 40, 0.22),
+        0 0 10px rgba(255, 66, 28, 0.12);
+    }
+
+    .menu-button.is-clicked::before {
+      opacity: 1;
+      background:
+        radial-gradient(circle at 6.5% 51%, rgba(255, 152, 92, 0.72), transparent 6%),
+        radial-gradient(circle at 93.5% 51%, rgba(255, 152, 92, 0.72), transparent 6%);
+    }
+
+    .page-shell {
+      display: grid;
+      gap: 18px;
+      padding: 18px;
+    }
+
+    .settings-shell,
+    .terminal-shell {
+      width: min(1120px, calc(100vw - 48px));
+      aspect-ratio: 1536 / 1024;
+      margin: 0 auto;
+      padding: clamp(72px, 5.5vw, 90px) clamp(110px, 8vw, 140px) clamp(66px, 5vw, 84px);
+      display: grid;
+      grid-template-rows: 20% 55% 25%;
+      background: url("assets/ui/panel.png") center center / 100% 100% no-repeat;
+      box-sizing: border-box;
+    }
+
+    .settings-shell__header,
+    .terminal-shell__header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .settings-shell__title,
+    .terminal-shell__title {
+      font-family: "BoldPixels", "Orbitron", "Rajdhani", sans-serif;
+      font-size: clamp(24px, 2.2vw, 34px);
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text);
+      text-align: center;
+    }
+
+    .settings-shell__content,
+    .terminal-shell__content {
+      display: grid;
+      align-content: center;
+      gap: clamp(18px, 2.2vw, 28px);
+      justify-items: center;
+      padding-bottom: clamp(10px, 1.5vw, 18px);
+      box-sizing: border-box;
+    }
+
+    .settings-stack,
+    .terminal-stack {
+      display: grid;
+      gap: 12px;
+      justify-items: center;
+      width: min(100%, 720px);
+    }
+
+    .settings-button,
+    .terminal-button {
+      width: min(100%, 540px);
+    }
+
+    .settings-back,
+    .terminal-back {
+      width: min(360px, 66%);
+      margin-top: 0;
+    }
+
+    .settings-shell__footer,
+    .terminal-shell__footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .terminal-shell--leaders .terminal-shell__content,
+    .terminal-shell--titles .terminal-shell__content,
+    .terminal-shell--results .terminal-shell__content {
+      align-content: stretch;
+    }
+
+    .terminal-shell--catalog .terminal-shell__content {
+      align-content: start;
+      padding-top: clamp(8px, 1vw, 14px);
+    }
+
+    .terminal-leaders__table,
+    .terminal-titles__text,
+    .terminal-results__stack {
+      width: min(100%, 760px);
+    }
+
+    .terminal-leaders__table {
+      display: grid;
+      gap: 8px;
+    }
+
+    .terminal-leaders__row {
+      min-height: 42px;
+      padding-block: 8px;
+    }
+
+    .terminal-titles__text {
+      display: grid;
+      gap: 14px;
+      justify-items: center;
+      align-content: center;
+      min-height: 100%;
+      text-align: center;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .terminal-results__stack {
+      display: grid;
+      gap: 16px;
+      align-content: center;
+    }
+
+    .terminal-results__layout {
+      width: min(100%, 860px);
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .terminal-results__summary {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .terminal-results__metric {
+      min-height: 92px;
+      display: grid;
+      gap: 6px;
+      padding: 12px 12px 10px;
+      border: 1px solid rgba(117, 162, 218, 0.16);
+      background: linear-gradient(180deg, rgba(16, 22, 31, 0.86), rgba(21, 29, 40, 0.96));
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+      align-content: center;
+    }
+
+    .terminal-results__metric-label {
+      color: var(--accent);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .terminal-results__metric-value {
+      color: var(--text);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .terminal-results__metric-value--grade {
+      font-size: 22px;
+    }
+
+    .terminal-results__two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+      gap: 12px;
+    }
+
+    .terminal-results__panel {
+      display: grid;
+      gap: 10px;
+      padding: 14px 16px 16px;
+      border: 1px solid rgba(117, 162, 218, 0.16);
+      background: linear-gradient(180deg, rgba(16, 22, 31, 0.86), rgba(21, 29, 40, 0.96));
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+    }
+
+    .terminal-results__panel-title {
+      color: var(--accent);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .terminal-results__reasons {
+      display: grid;
+      gap: 8px;
+    }
+
+    .terminal-results__reason {
+      padding: 10px 12px;
+      border: 1px solid rgba(117, 162, 218, 0.16);
+      background: linear-gradient(180deg, rgba(29, 38, 51, 0.92), rgba(18, 24, 33, 0.92));
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+      color: var(--text);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+
+    .terminal-results__comment {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      line-height: 1.55;
+      font-size: 12px;
+      text-align: center;
+      padding: 2px 6px;
+    }
+
+    .terminal-results__comment strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .terminal-results__block {
+      display: grid;
+      gap: 8px;
+    }
+
+    .terminal-results__label {
+      color: var(--accent);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .terminal-results__value {
+      padding: 16px 18px;
+      border: 1px solid rgba(117, 162, 218, 0.16);
+      background: linear-gradient(180deg, rgba(29, 38, 51, 0.92), rgba(18, 24, 33, 0.92));
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+      color: var(--text);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      min-height: 64px;
+      display: grid;
+      place-items: center;
+    }
+
+    .terminal-controls__list {
+      width: min(100%, 760px);
+      display: grid;
+      gap: 16px;
+      align-content: center;
+    }
+
+    .terminal-controls__group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .terminal-controls__label {
+      color: var(--accent);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .terminal-controls__value {
+      padding: 16px 18px;
+      border: 1px solid rgba(117, 162, 218, 0.16);
+      background: linear-gradient(180deg, rgba(29, 38, 51, 0.92), rgba(18, 24, 33, 0.92));
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+      color: var(--text);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      min-height: 54px;
+      display: grid;
+      place-items: center;
+    }
+
+    .terminal-controls__value--small {
+      min-height: 0;
+      padding-block: 10px;
+      display: block;
+    }
+
+    .terminal-controls__value--stacked {
+      gap: 8px;
+      place-items: stretch;
+      text-align: left;
+    }
+
+    .terminal-controls__debug-line {
+      text-align: center;
+    }
+
+    .terminal-catalog__grid {
+      width: min(100%, 900px);
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-content: start;
+    }
+
+    .terminal-catalog__item {
+      min-height: 96px;
+      display: grid;
+      gap: 8px;
+      padding: 12px 14px;
+      border: 1px solid rgba(117, 162, 218, 0.16);
+      background: linear-gradient(180deg, rgba(16, 22, 31, 0.86), rgba(21, 29, 40, 0.96));
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+    }
+
+    .terminal-catalog__label {
+      color: var(--accent);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .terminal-catalog__sample {
+      display: grid;
+      place-items: center;
+      min-height: 52px;
+    }
+
+    .terminal-catalog__sample--header {
+      font-family: "BoldPixels", "Orbitron", sans-serif;
+      font-size: clamp(16px, 1.4vw, 22px);
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .terminal-catalog__sample--smallbutton {
+      width: min(100%, 280px);
+      transform: scale(0.72);
+      transform-origin: center;
+    }
+
+    .terminal-catalog__sample--list {
+      width: 100%;
+      display: grid;
+      gap: 6px;
+    }
+
+    .terminal-catalog__sample--list .page-row {
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+
+    .terminal-catalog__sample--stats {
+      width: 100%;
+      display: grid;
+      gap: 6px;
+    }
+
+    .terminal-catalog__stat {
+      padding: 10px 12px;
+      border: 1px solid rgba(117, 162, 218, 0.16);
+      background: linear-gradient(180deg, rgba(29, 38, 51, 0.92), rgba(18, 24, 33, 0.92));
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 11px;
+      color: var(--text);
+    }
+
+    .terminal-catalog__sample--credits {
+      display: grid;
+      gap: 6px;
+      text-align: center;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .terminal-catalog__toggle {
+      width: min(100%, 210px);
+      padding: 10px 12px;
+      border: 1px solid rgba(117, 162, 218, 0.16);
+      background: linear-gradient(180deg, rgba(29, 38, 51, 0.92), rgba(18, 24, 33, 0.92));
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 11px;
+    }
+
+    .terminal-catalog__toggle-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ff6a28;
+      box-shadow: 0 0 10px rgba(255, 110, 40, 0.55);
+    }
+
+    .page-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(117, 162, 218, 0.16);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+    }
+
+    .page-title {
+      font-family: "BoldPixels", "Orbitron", "Rajdhani", sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .page-tag {
+      font-size: 10px;
+      color: var(--accent);
+    }
+
+    .page-body {
+      display: grid;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .page-list {
+      display: grid;
+      gap: 8px;
+      margin: 6px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .page-row {
+      padding: 10px 12px;
+      border: 1px solid rgba(117, 162, 218, 0.16);
+      background: linear-gradient(180deg, rgba(29, 38, 51, 0.92), rgba(18, 24, 33, 0.92));
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+    }
+
+    .page-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .page-button {
+      font-family: "BoldPixels", "Orbitron", "Rajdhani", sans-serif;
+      min-width: 132px;
+      min-height: 42px;
+      padding: 0 14px;
+      border: 1px solid rgba(117, 162, 218, 0.34);
+      background: linear-gradient(180deg, rgba(44, 56, 74, 0.98), rgba(21, 29, 40, 0.98));
+      color: var(--text);
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+      cursor: pointer;
+    }
+
+    .page-button:hover,
+    .page-button:focus-visible {
+      outline: none;
+      border-color: var(--line-strong);
+      color: #fff;
+    }
+
+    @media (max-width: 480px) {
+      :root {
+        --menu-button-width: min(366px, calc(100vw - 20px));
+      }
+
+      .page-shell {
+        width: min(366px, calc(100vw - 20px));
+      }
+
+      .menu-button {
+        font-size: 16px;
+        letter-spacing: 0.18em;
+      }
+
+      .menu-buttons {
+        top: 40%;
+      }
+
+      .menu-brand {
+        margin-bottom: 24px;
+      }
+
+      .menu-brand__title {
+        font-size: clamp(24px, 6vw, 36px);
+      }
+
+      .menu-brand__stars {
+        font-size: 11px;
+        letter-spacing: 0.26em;
+      }
+
+      .menu-brand__rule {
+        width: min(180px, 42vw);
+        margin-top: 12px;
+      }
+
+      .page-actions {
+        flex-direction: column;
+      }
+
+      .page-button {
+        width: 100%;
+      }
+
+      .settings-button {
+        width: min(100%, 366px);
+      }
+
+      .settings-back {
+        width: min(66%, 240px);
+      }
+
+      .settings-shell {
+        width: calc(100vw - 20px);
+        padding: clamp(52px, 8vw, 68px) clamp(38px, 6vw, 54px) clamp(48px, 7vw, 64px);
+      }
     }
   </style>
 </head>
-
 <body>
   <canvas id="game"></canvas>
 
-  <script src="js/game.js" charset="UTF-8"></script>
+  <main class="ui-root" id="uiRoot" aria-label="Главное меню">
+    <nav class="menu-buttons" id="menuScreen" aria-label="Главное меню">
+      <div class="menu-brand" aria-hidden="true">
+        <span class="menu-brand__stars menu-brand__stars--top">★ ★ ★</span>
+        <span class="menu-brand__title">ЗВЕЗДНЫЙ ДЕСАНТ "17</span>
+        <span class="menu-brand__rule"></span>
+        <span class="menu-brand__stars menu-brand__stars--bottom">★ ★ ★</span>
+      </div>
+      <ul class="menu-list" id="menuList">
+        <li><button class="menu-button" type="button" data-action="play"><span>ИГРАТЬ</span></button></li>
+        <li><button class="menu-button" type="button" data-action="settings"><span>НАСТРОЙКИ</span></button></li>
+        <li><button class="menu-button" type="button" data-action="leaders"><span>ЛИДЕРЫ</span></button></li>
+        <li><button class="menu-button" type="button" data-action="titles"><span>ТИТРЫ</span></button></li>
+        <li><button class="menu-button" type="button" data-action="exit"><span>ВЫХОД</span></button></li>
+      </ul>
+    </nav>
+
+    <section class="page-shell" id="pageScreen" hidden aria-live="polite">
+      <div class="page-header" id="pageHeader">
+        <div class="page-title" id="pageTitle">НАСТРОЙКИ</div>
+        <div class="page-tag" id="pageTag"></div>
+      </div>
+      <div class="page-body" id="pageBody"></div>
+      <div class="page-actions" id="pageActions"></div>
+    </section>
+
+    <section class="page-shell" id="resultScreen" hidden aria-live="polite">
+      <div class="page-header">
+        <div class="page-title" id="resultTitle">ПОБЕДА!</div>
+        <div class="page-tag" id="resultTag">RUN COMPLETE</div>
+      </div>
+      <div class="page-body" id="resultBody"></div>
+      <div class="page-actions" id="resultActions"></div>
+    </section>
+  </main>
+
+  <script src="js/game.js?v=20260614_1" charset="UTF-8"></script>
+  <script>
+    const uiRoot = document.getElementById("uiRoot");
+    const menuScreen = document.getElementById("menuScreen");
+    const pageScreen = document.getElementById("pageScreen");
+    const resultScreen = document.getElementById("resultScreen");
+    const pageHeader = document.getElementById("pageHeader");
+    const pageTitle = document.getElementById("pageTitle");
+    const pageTag = document.getElementById("pageTag");
+    const pageBody = document.getElementById("pageBody");
+    const pageActions = document.getElementById("pageActions");
+    const resultTitle = document.getElementById("resultTitle");
+    const resultTag = document.getElementById("resultTag");
+    const resultBody = document.getElementById("resultBody");
+    const resultActions = document.getElementById("resultActions");
+    const menuButtons = Array.from(document.querySelectorAll("#menuScreen [data-action]"));
+
+    const mainMenuOrder = ["play", "settings", "leaders", "titles", "exit"];
+    let currentResultData = null;
+    let resultDetailsExpanded = false;
+    window.__resultOverlayActive = false;
+    let menuActivationTimer = null;
+    let menuActivationPending = false;
+    const pages = {
+      settings: {
+        title: "НАСТРОЙКИ",
+        tag: "",
+        body: [
+          "ГРОМКОСТЬ - ПОЗЖЕ",
+          "УПРАВЛЕНИЕ - ПОЗЖЕ",
+          "ДОСТУПНОСТЬ - ПОЗЖЕ"
+        ],
+        actions: [
+          { label: "НАЗАД", action: "back" }
+        ]
+      },
+      controls: {
+        title: "УПРАВЛЕНИЕ",
+        tag: "",
+        body: [],
+        actions: [
+          { label: "НАЗАД", action: "back" }
+        ]
+      },
+      catalog: {
+        title: "ТИПЫ UI",
+        tag: "",
+        body: [],
+        actions: [
+          { label: "НАЗАД", action: "back" }
+        ]
+      },
+      leaders: {
+        title: "ЛИДЕРЫ",
+        tag: "RANK BOARD",
+        body: [
+          "ТАБЛИЦА ЛИДЕРОВ ЕЩЁ НЕ ПОДКЛЮЧЕНА.",
+          "ПОКА ЗДЕСЬ БУДЕТ МЕСТО ДЛЯ РЕЙТИНГА И ЛУЧШИХ ЗАБЕГОВ."
+        ],
+        actions: [
+          { label: "НАЗАД", action: "back" }
+        ]
+      },
+      titles: {
+        title: "ТИТРЫ",
+        tag: "CREDITS",
+        body: [
+          "ПРОЕКТ: CYBER SPIDER SHOOTER",
+          "РЕЖИМ: ТЕКУЩИЙ МАКЕТ МЕНЮ",
+          "ОСТАЛЬНОЕ БУДЕТ ДОБАВЛЕНО ПОТОМ"
+        ],
+        actions: [
+          { label: "НАЗАД", action: "back" }
+        ]
+      },
+      results: {
+        title: "РЕЗУЛЬТАТЫ",
+        tag: "MISSION STATS",
+        body: [],
+        actions: [
+          { label: "НАЗАД", action: "back" }
+        ]
+      },
+      exit: {
+        title: "ВЫХОД",
+        tag: "SYSTEM EXIT",
+        body: [
+          "БРАУЗЕР МОЖЕТ ЗАБЛОКИРОВАТЬ ЗАКРЫТИЕ ОКНА.",
+          "ЕСЛИ ЭТО ПРОИЗОЙДЁТ, ПРОСТО ЗАКРОЙТЕ ВКЛАДКУ."
+        ],
+        actions: [
+          { label: "ВЫЙТИ", action: "close" },
+          { label: "НАЗАД", action: "back" }
+        ]
+      }
+    };
+
+    let view = "menu";
+    let selectedIndex = 0;
+
+    function setDomMenuActive(active) {
+      window.__domMenuActive = active;
+    }
+
+    function renderMenuSelection() {
+    }
+
+    function bindTerminalAction(button, commit) {
+      button.addEventListener("click", () => {
+        triggerTerminalAction(button, commit);
+      });
+    }
+
+    function triggerTerminalAction(button, commit) {
+      if (menuActivationPending) {
+        return;
+      }
+
+      menuActivationPending = true;
+      if (menuActivationTimer !== null) {
+        window.clearTimeout(menuActivationTimer);
+      }
+
+      if (button) {
+        button.classList.add("is-clicked");
+      }
+
+      menuActivationTimer = window.setTimeout(() => {
+        menuActivationPending = false;
+        menuActivationTimer = null;
+
+        if (button) {
+          button.classList.remove("is-clicked");
+        }
+
+        commit();
+      }, 280);
+    }
+
+    function renderShellPage(key) {
+      const page = pages[key];
+      const shellClass = `terminal-shell terminal-shell--${key}`;
+
+      if (key === "settings") {
+        return `
+          <div class="${shellClass}">
+            <div class="settings-shell__header terminal-shell__header">
+              <div class="settings-shell__title terminal-shell__title">НАСТРОЙКИ</div>
+            </div>
+            <div class="settings-shell__content terminal-shell__content">
+              <div class="settings-stack terminal-stack">
+                <button class="menu-button settings-button terminal-button" type="button"><span>УПРАВЛЕНИЕ</span></button>
+                <button class="menu-button settings-button terminal-button" type="button"><span>ЗВУК</span></button>
+                <button class="menu-button settings-button terminal-button" type="button"><span>ЯЗЫК</span></button>
+              </div>
+            </div>
+            <div class="settings-shell__footer terminal-shell__footer">
+              <button class="menu-button settings-back terminal-back" type="button" data-action="back"><span>НАЗАД</span></button>
+            </div>
+          </div>
+        `;
+      }
+
+      if (key === "controls") {
+        return `
+          <div class="${shellClass}">
+            <div class="terminal-shell__header">
+              <div class="terminal-shell__title">${page.title}</div>
+            </div>
+            <div class="terminal-shell__content">
+              <div class="terminal-controls__list">
+                <div class="terminal-controls__group">
+                  <div class="terminal-controls__label">ДВИЖЕНИЕ</div>
+                  <div class="terminal-controls__value">W A S D</div>
+                </div>
+                <div class="terminal-controls__group">
+                  <div class="terminal-controls__label">БОЙ</div>
+                  <div class="terminal-controls__value">ЛКМ — ОГОНЬ</div>
+                </div>
+                <div class="terminal-controls__group">
+                  <div class="terminal-controls__label">ОТЛАДКА</div>
+                  <div class="terminal-controls__value terminal-controls__value--stacked">
+                    <div class="terminal-controls__debug-line">Z — GODMODE</div>
+                    <div class="terminal-controls__debug-line">B — OVERLAY БОССА И ЗОН</div>
+                    <div class="terminal-controls__debug-line">V / C — ТАЙМЕР ЭТАПОВ</div>
+                    <div class="terminal-controls__debug-line">Q / E — СКОРОСТЬ ИГРЫ</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="terminal-shell__footer">
+              <button class="menu-button terminal-back" type="button" data-action="back"><span>НАЗАД</span></button>
+            </div>
+          </div>
+        `;
+      }
+
+      if (key === "catalog") {
+        return `
+          <div class="${shellClass}">
+            <div class="terminal-shell__header">
+              <div class="terminal-shell__title">${page.title}</div>
+            </div>
+            <div class="terminal-shell__content">
+              <div class="terminal-catalog__grid">
+                <div class="terminal-catalog__item">
+                  <div class="terminal-catalog__label">КНОПКА</div>
+                  <div class="terminal-catalog__sample terminal-catalog__sample--smallbutton">
+                    <button class="menu-button" type="button"><span>ИГРАТЬ</span></button>
+                  </div>
+                </div>
+                <div class="terminal-catalog__item">
+                  <div class="terminal-catalog__label">ЗАГОЛОВОК СЕКЦИИ</div>
+                  <div class="terminal-catalog__sample terminal-catalog__sample--header">НАСТРОЙКИ</div>
+                </div>
+                <div class="terminal-catalog__item">
+                  <div class="terminal-catalog__label">СПИСОК КОМАНД</div>
+                  <div class="terminal-catalog__sample terminal-catalog__sample--list">
+                    <div class="page-row">W A S D</div>
+                    <div class="page-row">ЛКМ — ОГОНЬ</div>
+                  </div>
+                </div>
+                <div class="terminal-catalog__item">
+                  <div class="terminal-catalog__label">ТАБЛИЦА ЛИДЕРОВ</div>
+                  <div class="terminal-catalog__sample terminal-catalog__sample--list">
+                    <div class="page-row">#01  ОПЕРАТОР 1  —  000000</div>
+                    <div class="page-row">#02  ОПЕРАТОР 2  —  000000</div>
+                  </div>
+                </div>
+                <div class="terminal-catalog__item">
+                  <div class="terminal-catalog__label">СТАТИСТИКА ЗАБЕГА</div>
+                  <div class="terminal-catalog__sample terminal-catalog__sample--stats">
+                    <div class="terminal-catalog__stat">ВРЕМЯ: 00:00</div>
+                    <div class="terminal-catalog__stat">БОИ: 0</div>
+                  </div>
+                </div>
+                <div class="terminal-catalog__item">
+                  <div class="terminal-catalog__label">ТЕКСТ ТИТРОВ</div>
+                  <div class="terminal-catalog__sample terminal-catalog__sample--credits">
+                    <div>ПРОЕКТ: CYBER SPIDER SHOOTER</div>
+                    <div>РЕЖИМ: МАКЕТ</div>
+                    <div>РЕАЛЬНЫЙ ТЕКСТ БУДЕТ ПОЗЖЕ</div>
+                  </div>
+                </div>
+                <div class="terminal-catalog__item">
+                  <div class="terminal-catalog__label">ПЕРЕКЛЮЧАТЕЛЬ НАСТРОЙКИ</div>
+                  <div class="terminal-catalog__sample">
+                    <div class="terminal-catalog__toggle">
+                      <span>ON</span>
+                      <span class="terminal-catalog__toggle-dot"></span>
+                      <span>OFF</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="terminal-catalog__item">
+                  <div class="terminal-catalog__label">ИНФО-БЛОК</div>
+                  <div class="terminal-catalog__sample terminal-catalog__sample--credits">
+                    <div>КОМПОНЕНТ ДЛЯ ПОДСКАЗОК</div>
+                    <div>И СЛУЖЕБНЫХ СООБЩЕНИЙ</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="terminal-shell__footer">
+              <button class="menu-button terminal-back" type="button" data-action="back"><span>НАЗАД</span></button>
+            </div>
+          </div>
+        `;
+      }
+
+      if (key === "leaders") {
+        return `
+          <div class="${shellClass}">
+            <div class="terminal-shell__header">
+              <div class="terminal-shell__title">${page.title}</div>
+            </div>
+            <div class="terminal-shell__content">
+              <div class="terminal-leaders__table">
+                <div class="page-row terminal-leaders__row">#01  ОПЕРАТОР 1  -  000000</div>
+                <div class="page-row terminal-leaders__row">#02  ОПЕРАТОР 2  -  000000</div>
+                <div class="page-row terminal-leaders__row">#03  ОПЕРАТОР 3  -  000000</div>
+                <div class="page-row terminal-leaders__row">#04  ОПЕРАТОР 4  -  000000</div>
+                <div class="page-row terminal-leaders__row">#05  ОПЕРАТОР 5  -  000000</div>
+              </div>
+            </div>
+            <div class="terminal-shell__footer">
+              <button class="menu-button terminal-back" type="button" data-action="back"><span>НАЗАД</span></button>
+            </div>
+          </div>
+        `;
+      }
+
+      if (key === "titles") {
+        return `
+          <div class="${shellClass}">
+            <div class="terminal-shell__header">
+              <div class="terminal-shell__title">${page.title}</div>
+            </div>
+            <div class="terminal-shell__content">
+              <div class="terminal-titles__text">
+                <div>ПРОЕКТ: CYBER SPIDER SHOOTER</div>
+                <div>РЕЖИМ: ТЕКУЩИЙ МАКЕТ ТИТРОВ</div>
+                <div>ДАЛЬШЕ БУДЕТ ДОБАВЛЕН РЕАЛЬНЫЙ ТЕКСТ</div>
+              </div>
+            </div>
+            <div class="terminal-shell__footer">
+              <button class="menu-button terminal-back" type="button" data-action="back"><span>НАЗАД</span></button>
+            </div>
+          </div>
+        `;
+      }
+
+      if (key === "results") {
+        return `
+          <div class="${shellClass}">
+            <div class="terminal-shell__header">
+              <div class="terminal-shell__title">${page.title}</div>
+            </div>
+            <div class="terminal-shell__content">
+              <div class="terminal-results__layout">
+                <div class="terminal-results__summary">
+                  <div class="terminal-results__metric">
+                    <div class="terminal-results__metric-label">ОЦЕНКА</div>
+                    <div class="terminal-results__metric-value terminal-results__metric-value--grade">5-</div>
+                  </div>
+                  <div class="terminal-results__metric">
+                    <div class="terminal-results__metric-label">ОЧКИ</div>
+                    <div class="terminal-results__metric-value">8420</div>
+                  </div>
+                  <div class="terminal-results__metric">
+                    <div class="terminal-results__metric-label">ВРЕМЯ</div>
+                    <div class="terminal-results__metric-value">02:34</div>
+                  </div>
+                  <div class="terminal-results__metric">
+                    <div class="terminal-results__metric-label">УНИЧТОЖЕНО</div>
+                    <div class="terminal-results__metric-value">87</div>
+                  </div>
+                  <div class="terminal-results__metric">
+                    <div class="terminal-results__metric-label">БОСС</div>
+                    <div class="terminal-results__metric-value">ДА</div>
+                  </div>
+                </div>
+                <div class="terminal-results__two-col">
+                  <section class="terminal-results__panel">
+                    <div class="terminal-results__panel-title">3 ГЛАВНЫЕ ПРИЧИНЫ</div>
+                    <div class="terminal-results__reasons">
+                      <div class="terminal-results__reason">1. ПЕРЕГРУЗ ПО ДВИЖЕНИЮ ВО ВТОРОЙ ВОЛНЕ</div>
+                      <div class="terminal-results__reason">2. ПОТЕРЯ КОНТРОЛЯ НА УЗКОМ ПРОХОДЕ</div>
+                      <div class="terminal-results__reason">3. ОПОЗДАНИЕ С РЕАКЦИЕЙ НА БОССА</div>
+                    </div>
+                  </section>
+                  <section class="terminal-results__panel">
+                    <div class="terminal-results__panel-title">КОММЕНТАРИЙ ЗАБЕГА</div>
+                    <div class="terminal-results__comment">
+                      <strong>ХОРОШИЙ СТАРТ</strong>, НО К КОНЦУ МИССИИ ИГРА СЛИШКОМ РАЗОГНАЛАСЬ.
+                      ЕЩЁ НЕМНОГО ТОНЬШЕ БЫ РАБОТАТЬ С ПОЗИЦИОНИРОВАНИЕМ И ВРЕМЕНЕМ РЕАКЦИИ.
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+            <div class="terminal-shell__footer">
+              <button class="menu-button terminal-back" type="button" data-action="back"><span>НАЗАД</span></button>
+            </div>
+          </div>
+        `;
+      }
+
+      return "";
+    }
+
+    function renderPage(key) {
+      const page = pages[key];
+      if (!page) {
+        return;
+      }
+
+      pageHeader.hidden = ["settings", "controls", "catalog", "leaders", "titles", "results"].includes(key);
+      pageTitle.textContent = page.title;
+      pageTag.textContent = ["settings", "controls", "catalog", "leaders", "titles", "results"].includes(key) ? "" : page.tag;
+
+      if (["settings", "controls", "catalog", "leaders", "titles", "results"].includes(key)) {
+        pageBody.innerHTML = renderShellPage(key);
+        pageActions.innerHTML = "";
+        const backButton = pageBody.querySelector(".terminal-back");
+        if (backButton) {
+          const backTarget = key === "controls" ? "settings" : "menu";
+          bindTerminalAction(backButton, () => {
+            if (backTarget === "settings") {
+              showPage("settings");
+              return;
+            }
+            showMenu();
+          });
+        }
+
+        if (key === "settings") {
+          const settingsButtons = pageBody.querySelectorAll(".settings-button");
+          if (settingsButtons[0]) {
+            bindTerminalAction(settingsButtons[0], () => showPage("controls"));
+          }
+        }
+        return;
+      }
+
+      pageBody.innerHTML = page.body.map((line) => `<div class="page-row">${line}</div>`).join("");
+      pageActions.innerHTML = "";
+
+      for (const item of page.actions) {
+        const button = document.createElement("button");
+        button.className = "page-button";
+        button.type = "button";
+        button.textContent = item.label;
+        button.dataset.action = item.action;
+        bindTerminalAction(button, () => onPageActionClick({ currentTarget: button }));
+        pageActions.appendChild(button);
+      }
+    }
+
+    function renderResultRows() {
+      if (!currentResultData) {
+        resultBody.innerHTML = "";
+        resultActions.innerHTML = "";
+        return;
+      }
+
+      if (resultDetailsExpanded) {
+        const detailRows = currentResultData.detailRows || [];
+        resultBody.innerHTML = detailRows
+          .map((row) => `<div class="page-row">${row.label}: ${row.value}</div>`)
+          .join("");
+      } else {
+        const failureReasons = (currentResultData.failureReasons || [])
+          .filter(Boolean)
+          .slice(0, 3);
+        const bossText = currentResultData.bossAppeared ? "ДА" : "НЕТ";
+        const summaryRows = [
+          { label: "ОЦЕНКА", value: currentResultData.grade?.label || "-" },
+          { label: "ОЧКИ", value: currentResultData.score ?? 0 },
+          { label: "ВРЕМЯ", value: currentResultData.missionTimeText || "-" },
+          { label: "УНИЧТОЖЕНО", value: Number.isFinite(currentResultData.destroyedTotal) ? currentResultData.destroyedTotal : "-" },
+          { label: "БОСС", value: bossText }
+        ];
+
+        const reasonsMarkup = failureReasons.length > 0
+          ? failureReasons.map((reason, index) => {
+              const text = typeof reason === "string"
+                ? reason
+                : `${reason.reason}${Number.isFinite(reason.count) ? ` ×${reason.count}` : ""}`;
+              return `<div class="terminal-results__reason">${index + 1}. ${text}</div>`;
+            }).join("")
+          : `<div class="terminal-results__reason">НЕТ ДАННЫХ О ЯВНЫХ ПРИЧИНАХ</div>`;
+
+        const commentText = currentResultData.comment || "-";
+
+        resultBody.innerHTML = `
+          <div class="terminal-results__layout">
+            <div class="terminal-results__summary">
+              ${summaryRows.map((row) => `
+                <div class="terminal-results__metric">
+                  <div class="terminal-results__metric-label">${row.label}</div>
+                  <div class="terminal-results__metric-value${row.label === "ОЦЕНКА" ? " terminal-results__metric-value--grade" : ""}">${row.value}</div>
+                </div>
+              `).join("")}
+            </div>
+            <div class="terminal-results__two-col">
+              <section class="terminal-results__panel">
+                <div class="terminal-results__panel-title">3 ГЛАВНЫЕ ПРИЧИНЫ</div>
+                <div class="terminal-results__reasons">
+                  ${reasonsMarkup}
+                </div>
+              </section>
+              <section class="terminal-results__panel">
+                <div class="terminal-results__panel-title">КОММЕНТАРИЙ ЗАБЕГА</div>
+                <div class="terminal-results__comment">${commentText}</div>
+              </section>
+            </div>
+          </div>
+        `;
+      }
+
+      resultActions.innerHTML = "";
+
+      const actions = [
+        {
+          label: resultDetailsExpanded ? "СВЕРНУТЬ" : "ПОДРОБНЕЕ",
+          action: "toggleDetails"
+        },
+        {
+          label: "ИГРАТЬ СНОВА",
+          action: "restart"
+        },
+        {
+          label: "В МЕНЮ",
+          action: "menu"
+        }
+      ];
+
+      for (const item of actions) {
+        const button = document.createElement("button");
+        button.className = "page-button";
+        button.type = "button";
+        button.textContent = item.label;
+        button.dataset.action = item.action;
+        button.addEventListener("click", onResultActionClick);
+        resultActions.appendChild(button);
+      }
+    }
+
+    function showMenu() {
+      view = "menu";
+      menuActivationPending = false;
+      if (menuActivationTimer !== null) {
+        window.clearTimeout(menuActivationTimer);
+        menuActivationTimer = null;
+      }
+      menuButtons.forEach((button) => {
+        button.classList.remove("is-clicked");
+      });
+      pageBody.querySelectorAll(".is-clicked").forEach((button) => {
+        button.classList.remove("is-clicked");
+      });
+      if (pageHeader) {
+        pageHeader.hidden = false;
+      }
+      menuScreen.hidden = false;
+      pageScreen.hidden = true;
+      resultScreen.hidden = true;
+      window.__resultOverlayActive = false;
+      setDomMenuActive(true);
+      uiRoot.setAttribute("aria-label", "Главное меню");
+    }
+
+    function showPage(key) {
+      view = key;
+      renderPage(key);
+      menuScreen.hidden = true;
+      pageScreen.hidden = false;
+      resultScreen.hidden = true;
+      setDomMenuActive(true);
+      uiRoot.setAttribute("aria-label", pages[key].title);
+    }
+
+    function selectMenu(delta) {
+      if (menuActivationPending) {
+        return;
+      }
+      selectedIndex = (selectedIndex + delta + mainMenuOrder.length) % mainMenuOrder.length;
+    }
+
+    function activateMenuSelection(action, button) {
+      if (action === "play") {
+        setDomMenuActive(false);
+        menuScreen.hidden = true;
+        pageScreen.hidden = true;
+        uiRoot.hidden = true;
+        if (typeof window.__startGameFromMenu === "function") {
+          window.__startGameFromMenu();
+        }
+        return;
+      }
+
+      showPage(action);
+    }
+
+    function showResult(data) {
+      currentResultData = data;
+      resultDetailsExpanded = false;
+      window.__resultOverlayActive = true;
+      view = "result";
+      uiRoot.hidden = false;
+      menuScreen.hidden = true;
+      pageScreen.hidden = true;
+      resultScreen.hidden = false;
+      resultTitle.textContent = data.outcome === "victory" ? "ПОБЕДА!" : "ПОРАЖЕНИЕ";
+      resultTag.textContent = data.outcome === "victory" ? "MISSION COMPLETE" : "MISSION FAILED";
+      renderResultRows();
+      setDomMenuActive(true);
+      uiRoot.setAttribute("aria-label", data.outcome === "victory" ? "Победа" : "Поражение");
+      window.requestAnimationFrame(() => {
+        const firstAction = resultActions.querySelector("button");
+        if (firstAction) {
+          firstAction.focus({ preventScroll: true });
+        }
+      });
+    }
+
+    function onPageActionClick(event) {
+      const action = event.currentTarget.dataset.action;
+      if (!action) {
+        return;
+      }
+
+      if (action === "back") {
+        showMenu();
+      }
+
+      if (action === "close") {
+        window.close();
+      }
+    }
+
+    function onResultActionClick(event) {
+      const action = event.currentTarget.dataset.action;
+
+      if (action === "toggleDetails") {
+        resultDetailsExpanded = !resultDetailsExpanded;
+        renderResultRows();
+        return;
+      }
+
+      if (action === "restart") {
+        resultScreen.hidden = true;
+        window.__resultOverlayActive = false;
+        uiRoot.hidden = true;
+        if (typeof window.__startGameFromMenu === "function") {
+          window.__startGameFromMenu();
+        }
+        return;
+      }
+
+      if (action === "menu") {
+        resultScreen.hidden = true;
+        window.__resultOverlayActive = false;
+        showMenu();
+      }
+    }
+
+    menuButtons.forEach((button, index) => {
+      bindTerminalAction(button, () => {
+        selectedIndex = index;
+        activateMenuSelection(mainMenuOrder[selectedIndex], button);
+      });
+    });
+
+    window.__showRunResult = function showRunResult(data) {
+      currentResultData = data;
+      showResult(data);
+    };
+
+    window.__hideRunResult = function hideRunResult() {
+      currentResultData = null;
+      window.__resultOverlayActive = false;
+      resultScreen.hidden = true;
+    };
+
+    window.addEventListener("keydown", (event) => {
+      if (window.__getScene && window.__getScene() !== "menu") {
+        return;
+      }
+
+      if (view !== "menu" && event.code === "Escape") {
+        showMenu();
+        event.preventDefault();
+        return;
+      }
+
+      if (view !== "menu") {
+        return;
+      }
+
+      if (menuActivationPending) {
+        event.preventDefault();
+        return;
+      }
+
+      if (event.code === "ArrowUp" || event.code === "KeyW") {
+        selectMenu(-1);
+        event.preventDefault();
+      }
+
+      if (event.code === "ArrowDown" || event.code === "KeyS") {
+        selectMenu(1);
+        event.preventDefault();
+      }
+
+      if (event.code === "Enter") {
+        activateMenuSelection(mainMenuOrder[selectedIndex], menuButtons[selectedIndex]);
+        event.preventDefault();
+      }
+    });
+
+    showMenu();
+
+    const sceneSync = window.setInterval(() => {
+      if (typeof window.__getScene !== "function") {
+        return;
+      }
+
+      const gameScene = window.__getScene();
+
+      if (gameScene === "menu") {
+        if (uiRoot.hidden) {
+          uiRoot.hidden = false;
+          showMenu();
+        }
+        setDomMenuActive(true);
+        return;
+      }
+
+      if (window.__resultOverlayActive) {
+        if (uiRoot.hidden) {
+          uiRoot.hidden = false;
+        }
+        setDomMenuActive(true);
+        return;
+      }
+
+      if (!uiRoot.hidden) {
+        uiRoot.hidden = true;
+      }
+      setDomMenuActive(false);
+    }, 100);
+
+    window.addEventListener("beforeunload", () => {
+      window.clearInterval(sceneSync);
+    });
+  </script>
 </body>
 </html>
