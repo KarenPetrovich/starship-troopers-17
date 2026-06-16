@@ -331,6 +331,16 @@
       padding-top: clamp(8px, 1vw, 14px);
     }
 
+    .terminal-shell--results {
+      grid-template-rows: 14% 66% 20%;
+    }
+
+    .terminal-shell--results .terminal-shell__content {
+      align-content: start;
+      overflow: hidden;
+      padding-top: clamp(6px, 0.8vw, 12px);
+    }
+
     .terminal-leaders__table,
     .terminal-titles__text,
     .terminal-results__stack {
@@ -363,28 +373,29 @@
 
     .terminal-results__stack {
       display: grid;
-      gap: 16px;
-      align-content: center;
+      gap: 12px;
+      align-content: start;
+      min-height: 0;
     }
 
     .terminal-results__layout {
       width: min(100%, 860px);
       display: grid;
-      gap: 14px;
+      gap: 10px;
       align-content: start;
     }
 
     .terminal-results__summary {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 10px;
+      gap: 8px;
     }
 
     .terminal-results__metric {
-      min-height: 92px;
+      min-height: 80px;
       display: grid;
-      gap: 6px;
-      padding: 12px 12px 10px;
+      gap: 4px;
+      padding: 10px 10px 8px;
       border: 1px solid rgba(117, 162, 218, 0.16);
       background: linear-gradient(180deg, rgba(16, 22, 31, 0.86), rgba(21, 29, 40, 0.96));
       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
@@ -404,12 +415,12 @@
       text-align: center;
       text-transform: uppercase;
       letter-spacing: 0.14em;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
     }
 
     .terminal-results__metric-value--grade {
-      font-size: 22px;
+      font-size: 20px;
     }
 
     .terminal-results__two-col {
@@ -420,8 +431,8 @@
 
     .terminal-results__panel {
       display: grid;
-      gap: 10px;
-      padding: 14px 16px 16px;
+      gap: 8px;
+      padding: 10px 12px 12px;
       border: 1px solid rgba(117, 162, 218, 0.16);
       background: linear-gradient(180deg, rgba(16, 22, 31, 0.86), rgba(21, 29, 40, 0.96));
       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
@@ -437,28 +448,28 @@
 
     .terminal-results__reasons {
       display: grid;
-      gap: 8px;
+      gap: 6px;
     }
 
     .terminal-results__reason {
-      padding: 10px 12px;
+      padding: 8px 10px;
       border: 1px solid rgba(117, 162, 218, 0.16);
       background: linear-gradient(180deg, rgba(29, 38, 51, 0.92), rgba(18, 24, 33, 0.92));
       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
       color: var(--text);
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      font-size: 12px;
+      font-size: 11px;
     }
 
     .terminal-results__comment {
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      line-height: 1.55;
-      font-size: 12px;
+      line-height: 1.4;
+      font-size: 11px;
       text-align: center;
-      padding: 2px 6px;
+      padding: 0 4px;
     }
 
     .terminal-results__comment strong {
@@ -468,7 +479,7 @@
 
     .terminal-results__result-summary {
       display: grid;
-      gap: 10px;
+      gap: 8px;
     }
 
     .terminal-results__result-lead {
@@ -477,12 +488,12 @@
       text-transform: uppercase;
       letter-spacing: 0.12em;
       line-height: 1.55;
-      font-size: 13px;
+      font-size: 12px;
     }
 
     .terminal-results__result-threats {
       display: grid;
-      gap: 8px;
+      gap: 6px;
     }
 
     .terminal-results__result-threat {
@@ -490,14 +501,14 @@
       grid-template-columns: auto 1fr;
       gap: 10px;
       align-items: center;
-      padding: 10px 12px;
+      padding: 8px 10px;
       border: 1px solid rgba(117, 162, 218, 0.16);
       background: linear-gradient(180deg, rgba(29, 38, 51, 0.92), rgba(18, 24, 33, 0.92));
       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
       color: var(--text);
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      font-size: 12px;
+      font-size: 11px;
     }
 
     .terminal-results__result-threat-index {
@@ -518,20 +529,20 @@
     .terminal-results__detail-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      gap: 10px;
       align-items: start;
     }
 
     .terminal-results__detail-column {
       display: grid;
-      gap: 12px;
+      gap: 10px;
       align-content: start;
     }
 
     .terminal-results__detail-group {
       display: grid;
-      gap: 10px;
-      padding: 14px 15px 15px;
+      gap: 8px;
+      padding: 10px 12px 12px;
       border: 1px solid rgba(117, 162, 218, 0.16);
       background: linear-gradient(180deg, rgba(16, 22, 31, 0.86), rgba(21, 29, 40, 0.96));
       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
@@ -547,15 +558,16 @@
 
     .terminal-results__detail-list {
       display: grid;
-      gap: 8px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
     }
 
     .terminal-results__detail-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
-      gap: 12px;
+      gap: 10px;
       align-items: center;
-      padding: 8px 10px;
+      padding: 6px 8px;
       border: 1px solid rgba(117, 162, 218, 0.12);
       background: rgba(11, 16, 24, 0.28);
       clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
@@ -565,7 +577,7 @@
     .terminal-results__detail-value {
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      font-size: 12px;
+      font-size: 11px;
       line-height: 1.35;
     }
 
@@ -591,6 +603,10 @@
     @media (max-width: 900px) {
       .terminal-results__summary,
       .terminal-results__detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .terminal-results__detail-list {
         grid-template-columns: 1fr;
       }
     }
@@ -1002,12 +1018,17 @@
     </section>
 
     <section class="page-shell" id="resultScreen" hidden aria-live="polite">
-      <div class="page-header">
-        <div class="page-title" id="resultTitle">ПОБЕДА!</div>
-        <div class="page-tag" id="resultTag">RUN COMPLETE</div>
+      <div class="terminal-shell terminal-shell--results">
+        <div class="terminal-shell__header">
+          <div class="terminal-shell__title" id="resultTitle">РЕЗУЛЬТАТЫ</div>
+        </div>
+        <div class="terminal-shell__content">
+          <div class="terminal-results__stack" id="resultBody"></div>
+        </div>
+        <div class="terminal-shell__footer">
+          <div class="page-actions" id="resultActions"></div>
+        </div>
       </div>
-      <div class="page-body" id="resultBody"></div>
-      <div class="page-actions" id="resultActions"></div>
     </section>
   </main>
 
@@ -1023,7 +1044,6 @@
     const pageBody = document.getElementById("pageBody");
     const pageActions = document.getElementById("pageActions");
     const resultTitle = document.getElementById("resultTitle");
-    const resultTag = document.getElementById("resultTag");
     const resultBody = document.getElementById("resultBody");
     const resultActions = document.getElementById("resultActions");
     const menuButtons = Array.from(document.querySelectorAll("#menuScreen [data-action]"));
@@ -1724,8 +1744,7 @@
       menuScreen.hidden = true;
       pageScreen.hidden = true;
       resultScreen.hidden = false;
-      resultTitle.textContent = data.outcome === "victory" ? "ПОБЕДА!" : "ПОРАЖЕНИЕ";
-      resultTag.textContent = data.outcome === "victory" ? "MISSION COMPLETE" : "MISSION FAILED";
+      resultTitle.textContent = "РЕЗУЛЬТАТЫ";
       renderResultRows();
       setDomMenuActive(true);
       uiRoot.setAttribute("aria-label", data.outcome === "victory" ? "Победа" : "Поражение");
