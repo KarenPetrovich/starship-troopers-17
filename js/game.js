@@ -10,24 +10,61 @@ const mobileInputState = {
   fireActive: false
 };
 
+function getGameplayRenderViewport() {
+  return {
+    width: Math.max(1, Math.floor(window.innerWidth * 0.585)),
+    height: window.innerHeight
+  };
+}
+
+function getCanvasPresentationViewport(isMenuScene) {
+  if (isMenuScene) {
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      left: 0,
+      top: 0
+    };
+  }
+
+  const renderViewport = getGameplayRenderViewport();
+  return {
+    width: renderViewport.width,
+    height: renderViewport.height,
+    left: Math.round((window.innerWidth - renderViewport.width) / 2),
+    top: 0
+  };
+}
+
+window.__getGameplayRenderViewport = function getGameplayRenderViewportMetrics() {
+  const renderViewport = getGameplayRenderViewport();
+  const rect = canvas.getBoundingClientRect();
+  return {
+    renderWidth: renderViewport.width,
+    renderHeight: renderViewport.height,
+    canvasWidth: canvas.width,
+    canvasHeight: canvas.height,
+    clientWidth: rect.width,
+    clientHeight: rect.height
+  };
+};
+
     function layoutCanvas() {
       const isMenuScene = scene !== "game";
-      const gameplayWidth = Math.max(1, Math.floor(window.innerWidth * 0.585));
-      canvas.width = isMenuScene ? window.innerWidth : gameplayWidth;
-      canvas.height = window.innerHeight;
+      const renderViewport = isMenuScene
+        ? { width: window.innerWidth, height: window.innerHeight }
+        : getGameplayRenderViewport();
+      const presentationViewport = getCanvasPresentationViewport(isMenuScene);
+
+      canvas.width = renderViewport.width;
+      canvas.height = renderViewport.height;
       canvas.style.position = "fixed";
       canvas.style.zIndex = "2";
       canvas.style.display = isMenuScene ? "none" : "block";
-      canvas.style.height = canvas.height + "px";
-      if (isMenuScene) {
-        canvas.style.width = window.innerWidth + "px";
-        canvas.style.left = "0px";
-        canvas.style.top = "0px";
-      } else {
-        canvas.style.width = canvas.width + "px";
-        canvas.style.left = Math.round((window.innerWidth - canvas.width) / 2) + "px";
-        canvas.style.top = "0px";
-      }
+      canvas.style.width = presentationViewport.width + "px";
+      canvas.style.height = presentationViewport.height + "px";
+      canvas.style.left = presentationViewport.left + "px";
+      canvas.style.top = presentationViewport.top + "px";
       document.body.classList.toggle("menu-screen", isMenuScene);
       document.body.classList.toggle("game-screen", !isMenuScene);
     }
