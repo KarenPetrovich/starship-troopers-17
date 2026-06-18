@@ -24,8 +24,8 @@ const mobileInputState = {
         canvas.style.left = "0px";
         canvas.style.top = "0px";
       } else {
-        canvas.style.width = (isTouchDevice ? window.innerWidth : canvas.width) + "px";
-        canvas.style.left = isTouchDevice ? "0px" : Math.round((window.innerWidth - canvas.width) / 2) + "px";
+        canvas.style.width = canvas.width + "px";
+        canvas.style.left = Math.round((window.innerWidth - canvas.width) / 2) + "px";
         canvas.style.top = "0px";
       }
       document.body.classList.toggle("menu-screen", isMenuScene);
