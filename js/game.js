@@ -12,18 +12,21 @@ const mobileInputState = {
 
     function layoutCanvas() {
       const isMenuScene = scene !== "game";
-      const gameplayWidth = isTouchDevice ? window.innerWidth : Math.floor(window.innerWidth * 0.585);
+      const gameplayWidth = Math.max(1, Math.floor(window.innerWidth * 0.585));
       canvas.width = isMenuScene ? window.innerWidth : gameplayWidth;
       canvas.height = window.innerHeight;
       canvas.style.position = "fixed";
       canvas.style.zIndex = "2";
       canvas.style.display = isMenuScene ? "none" : "block";
+      canvas.style.height = canvas.height + "px";
       if (isMenuScene) {
+        canvas.style.width = window.innerWidth + "px";
         canvas.style.left = "0px";
         canvas.style.top = "0px";
       } else {
+        canvas.style.width = (isTouchDevice ? window.innerWidth : canvas.width) + "px";
         canvas.style.left = isTouchDevice ? "0px" : Math.round((window.innerWidth - canvas.width) / 2) + "px";
-        canvas.style.top = Math.round((window.innerHeight - canvas.height) / 2) + "px";
+        canvas.style.top = "0px";
       }
       document.body.classList.toggle("menu-screen", isMenuScene);
     }

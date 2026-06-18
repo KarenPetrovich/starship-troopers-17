@@ -40,6 +40,7 @@
       --overlay-title-scale: 1;
       --shell-horizontal-margin: 24px;
       --shell-vertical-margin: 24px;
+      --mobile-shell-active: 0;
     }
 
     html, body {
@@ -136,6 +137,7 @@
       bottom: 0;
       width: min(46vw, 320px);
       height: min(42vh, 300px);
+      overflow: visible;
     }
 
     .mobile-controls__joystick-base {
@@ -148,7 +150,9 @@
       background: rgba(255, 255, 255, 0.13);
       border: 2px solid rgba(255, 255, 255, 0.22);
       box-shadow: 0 0 18px rgba(0, 0, 0, 0.24);
-      opacity: 0;
+      left: calc(100% - max(84px, min(24vw, 112px)));
+      top: calc(100% - max(84px, min(20vh, 112px)));
+      opacity: 0.28;
       transition: opacity 90ms ease;
     }
 
@@ -441,6 +445,129 @@
       font-family: "BoldPixels", "Orbitron", "Rajdhani", sans-serif;
     }
 
+    body.mobile-shell-layout .page-shell {
+      width: min(calc(var(--app-viewport-width) - 16px), 100vw);
+      gap: 12px;
+      padding: 8px;
+    }
+
+    body.mobile-shell-layout .settings-shell,
+    body.mobile-shell-layout .terminal-shell {
+      width: calc(var(--app-viewport-width) - 16px);
+      max-width: calc(var(--app-viewport-width) - 16px);
+      max-height: calc(var(--app-viewport-height) - 16px);
+      min-height: min(700px, calc(var(--app-viewport-height) - 16px));
+      aspect-ratio: auto;
+      padding:
+        calc(clamp(30px, 6.2vw, 40px) * var(--overlay-padding-scale))
+        calc(clamp(16px, 4.6vw, 24px) * var(--overlay-padding-scale))
+        calc(clamp(22px, 5vw, 30px) * var(--overlay-padding-scale));
+      background-size: 100% 100%;
+    }
+
+    body.mobile-shell-layout .settings-shell__content,
+    body.mobile-shell-layout .terminal-shell__content {
+      gap: calc(clamp(10px, 1.8vw, 18px) * var(--overlay-gap-scale));
+      padding-bottom: calc(clamp(6px, 1vw, 10px) * var(--overlay-gap-scale));
+    }
+
+    body.mobile-shell-layout .settings-stack,
+    body.mobile-shell-layout .terminal-stack,
+    body.mobile-shell-layout .terminal-results__stack,
+    body.mobile-shell-layout .terminal-results__layout,
+    body.mobile-shell-layout .terminal-controls__list,
+    body.mobile-shell-layout .terminal-controls__layout,
+    body.mobile-shell-layout .terminal-leaders__table,
+    body.mobile-shell-layout .terminal-titles__text {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    body.mobile-shell-layout .terminal-shell__footer-actions,
+    body.mobile-shell-layout .page-actions {
+      width: 100%;
+      flex-direction: column;
+      align-items: stretch;
+      flex-wrap: nowrap;
+    }
+
+    body.mobile-shell-layout .terminal-shell__footer-actions .menu-button,
+    body.mobile-shell-layout .result-action-button,
+    body.mobile-shell-layout .settings-button,
+    body.mobile-shell-layout .settings-back,
+    body.mobile-shell-layout .terminal-back {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    body.mobile-shell-layout .terminal-shell--pause {
+      width: calc(var(--app-viewport-width) - 20px);
+      max-width: calc(var(--app-viewport-width) - 20px);
+      min-height: 0;
+      grid-template-rows: auto auto;
+    }
+
+    body.mobile-shell-layout .terminal-shell--pause .terminal-shell__footer-actions,
+    body.mobile-shell-layout .terminal-shell--exit .terminal-shell__footer-actions {
+      flex-direction: row;
+      align-items: center;
+    }
+
+    body.mobile-shell-layout .terminal-shell--pause .terminal-shell__footer-actions .menu-button,
+    body.mobile-shell-layout .terminal-shell--exit .terminal-shell__footer-actions .menu-button {
+      width: calc((100% - max(6px, calc(10px * var(--overlay-gap-scale)))) / 2);
+    }
+
+    body.mobile-shell-layout .terminal-leaders__row {
+      min-height: 0;
+      padding: 0 calc(8px * var(--overlay-gap-scale));
+      white-space: pre-wrap;
+      line-height: 1.35;
+      font-size: max(10px, calc(12px * var(--overlay-gap-scale)));
+      text-align: left;
+    }
+
+    body.mobile-shell-layout .terminal-titles__text {
+      line-height: 1.5;
+      font-size: max(11px, calc(13px * var(--overlay-gap-scale)));
+      letter-spacing: 0.08em;
+    }
+
+    body.mobile-shell-layout .terminal-results__summary {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body.mobile-shell-layout .terminal-results__summary .terminal-results__metric:last-child {
+      grid-column: 1 / -1;
+    }
+
+    body.mobile-shell-layout .terminal-results__detail-grid,
+    body.mobile-shell-layout .terminal-results__detail-list,
+    body.mobile-shell-layout .terminal-results__two-col {
+      grid-template-columns: 1fr;
+    }
+
+    body.mobile-shell-layout .terminal-results__metric,
+    body.mobile-shell-layout .terminal-results__panel,
+    body.mobile-shell-layout .terminal-results__detail-group {
+      padding:
+        calc(8px * var(--overlay-gap-scale))
+        calc(9px * var(--overlay-gap-scale))
+        calc(9px * var(--overlay-gap-scale));
+    }
+
+    body.mobile-shell-layout .terminal-results__detail-row,
+    body.mobile-shell-layout .terminal-results__result-threat {
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: start;
+    }
+
+    body.mobile-shell-layout .terminal-results__detail-value,
+    body.mobile-shell-layout .terminal-results__result-threat-text,
+    body.mobile-shell-layout .terminal-results__result-threat-index {
+      text-align: left;
+    }
+
     .pause-overlay {
       position: fixed;
       inset: 0;
@@ -713,6 +840,8 @@
       background: linear-gradient(180deg, rgba(16, 22, 31, 0.86), rgba(21, 29, 40, 0.96));
       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
       align-content: center;
+      box-sizing: border-box;
+      min-width: 0;
     }
 
     .terminal-results__metric-label {
@@ -749,6 +878,8 @@
       border: 1px solid rgba(117, 162, 218, 0.16);
       background: linear-gradient(180deg, rgba(16, 22, 31, 0.86), rgba(21, 29, 40, 0.96));
       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+      box-sizing: border-box;
+      min-width: 0;
     }
 
     .terminal-results__panel-title {
@@ -859,6 +990,8 @@
       border: 1px solid rgba(117, 162, 218, 0.16);
       background: linear-gradient(180deg, rgba(16, 22, 31, 0.86), rgba(21, 29, 40, 0.96));
       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
+      box-sizing: border-box;
+      min-width: 0;
     }
 
     .terminal-results__detail-title {
@@ -884,6 +1017,8 @@
       border: 1px solid rgba(117, 162, 218, 0.12);
       background: rgba(11, 16, 24, 0.28);
       clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
+      box-sizing: border-box;
+      min-width: 0;
     }
 
     .terminal-results__detail-label,
@@ -1494,6 +1629,18 @@
       return viewport;
     }
 
+    function isMobileShellViewport(viewport = getViewportMetrics()) {
+      return isTouchInterface && Math.min(viewport.width, viewport.height) <= 900;
+    }
+
+    function syncMobileShellLayout() {
+      const viewport = updateViewportCssVariables();
+      const mobileShellActive = isMobileShellViewport(viewport);
+      document.body.classList.toggle("mobile-shell-layout", mobileShellActive);
+      document.documentElement.style.setProperty("--mobile-shell-active", mobileShellActive ? "1" : "0");
+      return viewport;
+    }
+
     function resetMenuLayoutVariables() {
       const rootStyle = document.documentElement.style;
       rootStyle.setProperty("--menu-logo-scale", "1");
@@ -1608,9 +1755,13 @@
 
     function measureOverlayShell(shell) {
       const buttons = Array.from(shell.querySelectorAll(".menu-button, .result-action-button"));
+      const shellRect = shell.getBoundingClientRect();
+      const measuredNodes = Array.from(shell.querySelectorAll(".terminal-shell__header, .terminal-shell__content, .terminal-shell__footer, .settings-shell__header, .settings-shell__content, .settings-shell__footer, .terminal-results__layout, .terminal-results__stack, .terminal-controls__layout, .terminal-controls__list, .terminal-leaders__table, .terminal-titles__text"));
       const buttonRects = buttons.map((button) => button.getBoundingClientRect());
       let overlap = false;
       let minGap = Infinity;
+      let overflowBoundsX = 0;
+      let overflowBoundsY = 0;
 
       for (let index = 0; index < buttonRects.length; index += 1) {
         for (let nextIndex = index + 1; nextIndex < buttonRects.length; nextIndex += 1) {
@@ -1632,15 +1783,32 @@
         }
       }
 
+      for (const node of measuredNodes) {
+        const rect = node.getBoundingClientRect();
+        overflowBoundsX = Math.max(
+          overflowBoundsX,
+          Math.max(0, shellRect.left - rect.left),
+          Math.max(0, rect.right - shellRect.right)
+        );
+        overflowBoundsY = Math.max(
+          overflowBoundsY,
+          Math.max(0, shellRect.top - rect.top),
+          Math.max(0, rect.bottom - shellRect.bottom)
+        );
+      }
+
       return {
-        overflow: Math.max(0, shell.scrollHeight - shell.clientHeight),
+        overflowX: Math.max(0, shell.scrollWidth - shell.clientWidth),
+        overflowY: Math.max(0, shell.scrollHeight - shell.clientHeight),
+        overflowBoundsX,
+        overflowBoundsY,
         hasOverlap: overlap,
         minGap: Number.isFinite(minGap) ? minGap : 0
       };
     }
 
     function applyOverlayLayout() {
-      updateViewportCssVariables();
+      syncMobileShellLayout();
       const shell = getActiveOverlayShell();
       if (!shell) {
         resetOverlayLayoutVariables();
@@ -1650,10 +1818,11 @@
       resetOverlayLayoutVariables();
 
       const rootStyle = document.documentElement.style;
-      const minPaddingScale = 0.5;
-      const minGapScale = 0.44;
-      const minButtonScale = 0.52;
-      const minTitleScale = 0.6;
+      const mobileShellActive = document.body.classList.contains("mobile-shell-layout");
+      const minPaddingScale = mobileShellActive ? 0.34 : 0.5;
+      const minGapScale = mobileShellActive ? 0.3 : 0.44;
+      const minButtonScale = mobileShellActive ? 0.48 : 0.52;
+      const minTitleScale = mobileShellActive ? 0.5 : 0.6;
       let paddingScale = 1;
       let gapScale = 1;
       let buttonScale = 1;
@@ -1668,9 +1837,16 @@
 
       writeOverlayVariables();
 
-      for (let attempt = 0; attempt < 36; attempt += 1) {
+      for (let attempt = 0; attempt < 48; attempt += 1) {
         const metrics = measureOverlayShell(shell);
-        if (metrics.overflow <= 0 && !metrics.hasOverlap && metrics.minGap >= 0) {
+        if (
+          metrics.overflowX <= 0 &&
+          metrics.overflowY <= 0 &&
+          metrics.overflowBoundsX <= 0 &&
+          metrics.overflowBoundsY <= 0 &&
+          !metrics.hasOverlap &&
+          metrics.minGap >= 0
+        ) {
           break;
         }
 
@@ -1699,6 +1875,7 @@
         layoutUpdateFrame = null;
         applyMenuLayout();
         applyOverlayLayout();
+        positionIdleJoystickBase();
       });
     }
 
@@ -1721,6 +1898,46 @@
       }
 
       mobileControls.hidden = !visible;
+      if (visible) {
+        positionIdleJoystickBase();
+      }
+    }
+
+    function getJoystickBaseLocalPosition(clientX, clientY) {
+      const zoneRect = joystickZone?.getBoundingClientRect();
+      if (!zoneRect) {
+        return { left: 0, top: 0 };
+      }
+
+      return {
+        left: clamp(clientX - zoneRect.left, 58, Math.max(58, zoneRect.width - 58)),
+        top: clamp(clientY - zoneRect.top, 58, Math.max(58, zoneRect.height - 58))
+      };
+    }
+
+    function setJoystickBasePosition(clientX, clientY) {
+      if (!joystickBase) {
+        return;
+      }
+
+      const local = getJoystickBaseLocalPosition(clientX, clientY);
+      joystickBase.style.left = local.left + "px";
+      joystickBase.style.top = local.top + "px";
+    }
+
+    function positionIdleJoystickBase() {
+      if (!isTouchInterface || !joystickZone || !joystickBase) {
+        return;
+      }
+
+      const zoneRect = joystickZone.getBoundingClientRect();
+      if (!zoneRect.width || !zoneRect.height) {
+        return;
+      }
+
+      const idleClientX = zoneRect.left + Math.max(58, Math.min(zoneRect.width - 58, zoneRect.width * 0.62));
+      const idleClientY = zoneRect.top + Math.max(58, Math.min(zoneRect.height - 58, zoneRect.height * 0.58));
+      setJoystickBasePosition(idleClientX, idleClientY);
     }
 
     function resetJoystickVisual() {
@@ -1728,6 +1945,7 @@
         return;
       }
 
+      positionIdleJoystickBase();
       joystickBase.classList.remove("is-visible");
       joystickKnob.style.transform = "translate(0px, 0px)";
     }
@@ -1783,8 +2001,7 @@
         mobileJoystick.pointerId = event.pointerId;
         mobileJoystick.centerX = event.clientX;
         mobileJoystick.centerY = event.clientY;
-        joystickBase.style.left = mobileJoystick.centerX + "px";
-        joystickBase.style.top = mobileJoystick.centerY + "px";
+        setJoystickBasePosition(mobileJoystick.centerX, mobileJoystick.centerY);
         joystickBase.classList.add("is-visible");
         updateMobileJoystick(event.clientX, event.clientY);
       });
@@ -1843,6 +2060,8 @@
         resetMobileJoystick();
         resetMobileFire();
       });
+
+      positionIdleJoystickBase();
     }
 
     syncDeveloperModeSetting();
@@ -2320,6 +2539,7 @@
             bindTerminalAction(developerToggleButton, () => {
               toggleDeveloperModeSetting();
               renderPage("settings");
+              scheduleLayoutUpdate();
               syncKeyboardSelection();
             });
           }
@@ -2654,6 +2874,7 @@
       if (action === "toggleDetails") {
         resultDetailsExpanded = !resultDetailsExpanded;
         renderResultRows();
+        scheduleLayoutUpdate();
         return;
       }
 
@@ -2999,7 +3220,7 @@
       }
     });
 
-    updateViewportCssVariables();
+    syncMobileShellLayout();
     window.addEventListener("resize", scheduleLayoutUpdate);
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", scheduleLayoutUpdate);
