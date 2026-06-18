@@ -66,7 +66,6 @@ window.__getGameplayRenderViewport = function getGameplayRenderViewportMetrics()
       canvas.style.left = presentationViewport.left + "px";
       canvas.style.top = presentationViewport.top + "px";
       document.body.classList.toggle("menu-screen", isMenuScene);
-      document.body.classList.toggle("game-screen", !isMenuScene);
     }
 
     layoutCanvas();
