@@ -25,7 +25,17 @@
       --accent: #68d0ff;
       --accent-2: #a1ff73;
       --shadow: rgba(0, 0, 0, 0.55);
+      --app-viewport-width: 100vw;
+      --app-viewport-height: 100vh;
       --menu-button-width: min(340px, calc(100vw - 32px));
+      --menu-safe-top: 24px;
+      --menu-safe-bottom: 24px;
+      --menu-stack-gap: 34px;
+      --menu-list-gap: 12px;
+      --menu-logo-scale: 1;
+      --menu-button-scale: 1;
+      --shell-horizontal-margin: 24px;
+      --shell-vertical-margin: 24px;
     }
 
     html, body {
@@ -83,6 +93,14 @@
       display: none !important;
     }
 
+    .pause-overlay[hidden] {
+      display: none !important;
+    }
+
+    .mobile-controls[hidden] {
+      display: none !important;
+    }
+
     .page-header[hidden] {
       display: none !important;
     }
@@ -92,22 +110,106 @@
       pointer-events: auto;
     }
 
-    .menu-buttons {
+    .mobile-controls {
       position: fixed;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .mobile-controls__joystick-zone,
+    .mobile-controls__fire {
+      pointer-events: auto;
+      touch-action: none;
+    }
+
+    .mobile-controls__joystick-zone {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: min(46vw, 320px);
+      height: min(42vh, 300px);
+    }
+
+    .mobile-controls__joystick-base {
+      position: absolute;
+      width: 116px;
+      height: 116px;
+      margin-left: -58px;
+      margin-top: -58px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.13);
+      border: 2px solid rgba(255, 255, 255, 0.22);
+      box-shadow: 0 0 18px rgba(0, 0, 0, 0.24);
+      opacity: 0;
+      transition: opacity 90ms ease;
+    }
+
+    .mobile-controls__joystick-base.is-visible {
+      opacity: 1;
+    }
+
+    .mobile-controls__joystick-knob {
+      position: absolute;
       left: 50%;
-      top: 41%;
-      transform: translate(-50%, -50%);
-      width: var(--menu-button-width);
+      top: 50%;
+      width: 54px;
+      height: 54px;
+      margin-left: -27px;
+      margin-top: -27px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.28);
+      border: 2px solid rgba(255, 255, 255, 0.34);
+      box-shadow: 0 0 14px rgba(0, 0, 0, 0.22);
+      transform: translate(0, 0);
+    }
+
+    .mobile-controls__fire {
+      position: absolute;
+      left: max(18px, env(safe-area-inset-left));
+      bottom: max(18px, env(safe-area-inset-bottom));
+      width: clamp(88px, 18vw, 108px);
+      height: clamp(88px, 18vw, 108px);
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.24);
+      background: rgba(255, 255, 255, 0.16);
+      box-shadow: 0 0 18px rgba(0, 0, 0, 0.22);
+      color: rgba(255, 255, 255, 0.92);
+      font-family: "BoldPixels", "Orbitron", "Rajdhani", sans-serif;
+      font-size: clamp(18px, 3.8vw, 22px);
+      letter-spacing: 0.08em;
+      display: grid;
+      place-items: center;
+      text-transform: uppercase;
+    }
+
+    .mobile-controls__fire.is-active {
+      background: rgba(255, 76, 76, 0.28);
+      border-color: rgba(255, 112, 112, 0.42);
+      color: #ffffff;
+      box-shadow: 0 0 22px rgba(255, 64, 64, 0.2);
+    }
+
+    .menu-buttons {
+      position: relative;
+      width: min(calc(var(--app-viewport-width) - 32px), 92vw);
+      max-height: var(--app-viewport-height);
+      padding: var(--menu-safe-top) 0 var(--menu-safe-bottom);
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--menu-stack-gap);
       z-index: 4;
     }
 
     .menu-brand {
-      position: absolute;
-      left: 50%;
-      bottom: 100%;
-      width: min(620px, 92vw);
-      margin-bottom: 34px;
-      transform: translateX(-50%);
+      position: relative;
+      width: min(calc(620px * var(--menu-logo-scale)), calc(var(--app-viewport-width) - 32px), 92vw);
       text-align: center;
       pointer-events: none;
       user-select: none;
@@ -120,7 +222,7 @@
     .menu-brand__title {
       display: block;
       font-family: "BoldPixels", "Orbitron", "Rajdhani", sans-serif;
-      font-size: clamp(28px, 3.4vw, 48px);
+      font-size: calc(clamp(28px, 3.4vw, 48px) * var(--menu-logo-scale));
       font-weight: 800;
       line-height: 1;
       white-space: nowrap;
@@ -128,7 +230,7 @@
 
     .menu-brand__stars {
       font-family: "Orbitron", "Rajdhani", sans-serif;
-      font-size: clamp(12px, 1.35vw, 18px);
+      font-size: calc(clamp(12px, 1.35vw, 18px) * var(--menu-logo-scale));
       font-weight: 700;
       letter-spacing: 0.42em;
       line-height: 1;
@@ -139,8 +241,8 @@
     }
 
     .menu-brand__rule {
-      width: min(220px, 44vw);
-      margin: 14px auto 0;
+      width: min(calc(220px * var(--menu-logo-scale)), calc(44vw * var(--menu-logo-scale)));
+      margin: calc(14px * var(--menu-logo-scale)) auto 0;
       border-bottom: 1px solid #ff1f1f;
       opacity: 1;
       box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
@@ -155,13 +257,14 @@
     }
 
     .menu-brand__stars--bottom {
-      margin-top: 8px;
+      margin-top: calc(8px * var(--menu-logo-scale));
       display: block;
     }
 
     .menu-list {
       display: grid;
-      gap: 12px;
+      width: min(calc(var(--menu-button-width) * var(--menu-button-scale)), calc(var(--app-viewport-width) - 32px));
+      gap: max(6px, var(--menu-list-gap));
       margin: 0;
       padding: 0;
       list-style: none;
@@ -169,7 +272,7 @@
 
     .menu-button {
       font-family: "BoldPixels", "Orbitron", "Rajdhani", sans-serif;
-      width: var(--menu-button-width);
+      width: 100%;
       aspect-ratio: 1217 / 154;
       padding: 0;
       display: grid;
@@ -180,7 +283,7 @@
       color: var(--text);
       text-transform: uppercase;
       letter-spacing: 0.18em;
-      font-size: 17px;
+      font-size: max(14px, calc(17px * var(--menu-button-scale)));
       font-weight: 700;
       cursor: pointer;
       position: relative;
@@ -230,7 +333,32 @@
         radial-gradient(circle at 93.5% 51%, rgba(255, 128, 72, 0.5), transparent 6%);
     }
 
-    .menu-button.is-clicked {
+    .menu-button.is-selected,
+    .page-button.is-selected,
+    .result-action-button.is-selected {
+      outline: none;
+    }
+
+    .menu-button.is-selected,
+    .result-action-button.is-selected {
+      color: #ffffff;
+      filter: brightness(1.12) saturate(1.14);
+      box-shadow:
+        0 0 0 1px rgba(255, 96, 52, 0.12) inset,
+        0 0 16px rgba(255, 96, 52, 0.12);
+    }
+
+    .menu-button.is-selected::before,
+    .result-action-button.is-selected::before {
+      opacity: 1;
+      background:
+        radial-gradient(circle at 6.5% 51%, rgba(255, 128, 72, 0.52), transparent 6%),
+        radial-gradient(circle at 93.5% 51%, rgba(255, 128, 72, 0.52), transparent 6%);
+    }
+
+    .menu-button.is-clicked,
+    .page-button.is-clicked,
+    .result-action-button.is-clicked {
       outline: none;
       color: #ff2f2f;
       transform: translateY(-1px);
@@ -241,29 +369,123 @@
         0 0 10px rgba(255, 66, 28, 0.12);
     }
 
-    .menu-button.is-clicked::before {
+    .menu-button.is-clicked::before,
+    .result-action-button.is-clicked::before {
       opacity: 1;
       background:
         radial-gradient(circle at 6.5% 51%, rgba(255, 152, 92, 0.72), transparent 6%),
         radial-gradient(circle at 93.5% 51%, rgba(255, 152, 92, 0.72), transparent 6%);
     }
 
+    .page-button.is-selected {
+      border-color: var(--line-strong);
+      color: #fff;
+      background: linear-gradient(180deg, rgba(60, 74, 95, 0.98), rgba(31, 41, 56, 0.98));
+      box-shadow: 0 0 0 1px rgba(104, 208, 255, 0.12) inset, 0 0 18px rgba(104, 208, 255, 0.08);
+    }
+
     .page-shell {
       display: grid;
       gap: 18px;
-      padding: 18px;
+      padding: var(--shell-vertical-margin) var(--shell-horizontal-margin);
+      box-sizing: border-box;
+    }
+
+    .page-shell--exit-modal {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      gap: 0;
+      padding: 0;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .page-shell--exit-modal .page-header,
+    .page-shell--exit-modal .page-actions {
+      display: none !important;
+    }
+
+    .page-shell--exit-modal .page-body {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      pointer-events: auto;
     }
 
     .settings-shell,
     .terminal-shell {
-      width: min(1120px, calc(100vw - 48px));
+      width: min(
+        1120px,
+        calc(var(--app-viewport-width) - (var(--shell-horizontal-margin) * 2)),
+        calc((var(--app-viewport-height) - (var(--shell-vertical-margin) * 2)) * 1536 / 1024)
+      );
+      max-width: calc(var(--app-viewport-width) - (var(--shell-horizontal-margin) * 2));
+      max-height: calc(var(--app-viewport-height) - (var(--shell-vertical-margin) * 2));
       aspect-ratio: 1536 / 1024;
       margin: 0 auto;
       padding: clamp(72px, 5.5vw, 90px) clamp(110px, 8vw, 140px) clamp(66px, 5vw, 84px);
       display: grid;
-      grid-template-rows: 20% 55% 25%;
+      grid-template-rows: 16% minmax(0, 1fr) auto;
       background: url("assets/ui/panel.png") center center / 100% 100% no-repeat;
       box-sizing: border-box;
+      font-family: "BoldPixels", "Orbitron", "Rajdhani", sans-serif;
+    }
+
+    .pause-overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: auto;
+      z-index: 6;
+    }
+
+    .pause-overlay .terminal-shell--pause {
+      width: min(458px, calc(var(--app-viewport-width) - 32px), calc((var(--app-viewport-height) - 32px) * 1536 / 1024));
+      padding: clamp(18px, 2vw, 24px) clamp(24px, 2.7vw, 32px) clamp(14px, 1.5vw, 18px);
+      grid-template-rows: auto auto;
+      align-content: center;
+    }
+
+    .terminal-shell--pause .terminal-shell__content {
+      display: none;
+    }
+
+    .terminal-shell--pause .terminal-titles__text {
+      gap: 0;
+      min-height: 0;
+      color: var(--text);
+      font-size: 0;
+      letter-spacing: 0;
+    }
+
+    .terminal-shell--pause .terminal-shell__title {
+      font-size: clamp(26px, 2.35vw, 34px);
+      letter-spacing: 0.24em;
+      transform: translateY(-36px);
+    }
+
+    .terminal-shell--pause .terminal-shell__footer {
+      align-items: center;
+      padding-bottom: 0;
+    }
+
+    .terminal-shell--pause .terminal-shell__footer-actions {
+      width: min(100%, 428px);
+      gap: 10px;
+      flex-wrap: nowrap;
+    }
+
+    .terminal-shell--pause .terminal-shell__footer-actions .menu-button {
+      width: calc((100% - 10px) / 2);
+      font-size: 18px;
+    }
+
+    .terminal-shell--pause .menu-button span {
+      transform: translateY(3px);
     }
 
     .settings-shell__header,
@@ -275,7 +497,6 @@
 
     .settings-shell__title,
     .terminal-shell__title {
-      font-family: "BoldPixels", "Orbitron", "Rajdhani", sans-serif;
       font-size: clamp(24px, 2.2vw, 34px);
       font-weight: 800;
       letter-spacing: 0.2em;
@@ -316,8 +537,21 @@
     .settings-shell__footer,
     .terminal-shell__footer {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
+      padding-bottom: clamp(16px, 1.4vw, 22px);
+    }
+
+    .terminal-shell__footer-actions {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .terminal-shell__footer-actions .menu-button {
+      width: min(300px, calc((100% - 12px) / 2));
     }
 
     .terminal-shell--leaders .terminal-shell__content,
@@ -331,14 +565,62 @@
       padding-top: clamp(8px, 1vw, 14px);
     }
 
-    .terminal-shell--results {
-      grid-template-rows: 14% 66% 20%;
+    .terminal-shell--leaders .terminal-shell__content {
+      align-content: start;
+      padding-top: clamp(10px, 1.2vw, 16px);
+    }
+
+    .terminal-shell--controls .terminal-shell__content {
+      align-content: start;
+      padding-top: clamp(4px, 0.6vw, 10px);
+    }
+
+    .terminal-shell--exit .terminal-shell__content {
+      align-content: center;
+      justify-items: center;
+      gap: clamp(18px, 2vw, 26px);
+      padding-top: clamp(18px, 2vw, 28px);
+      padding-bottom: clamp(12px, 1.2vw, 18px);
+    }
+
+    .terminal-shell--exit {
+      width: min(720px, calc(var(--app-viewport-width) - 56px), calc((var(--app-viewport-height) - 56px) * 1536 / 1024));
+      padding: clamp(32px, 3vw, 44px) clamp(56px, 4.6vw, 72px) clamp(28px, 2.6vw, 36px);
+      grid-template-rows: auto minmax(0, 1fr);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.34);
+    }
+
+    .terminal-shell--exit .terminal-shell__footer {
+      display: none;
+    }
+
+    .terminal-shell--exit .terminal-exit__question {
+      width: min(100%, 680px);
+      color: var(--text);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      line-height: 1.08;
+      font-size: clamp(34px, 3.2vw, 50px);
+      font-weight: 800;
+      text-shadow: 0 1px 10px rgba(0, 0, 0, 0.28);
+    }
+
+    .terminal-shell--exit .terminal-shell__footer-actions {
+      width: min(100%, 520px);
+      gap: 14px;
+      flex-wrap: nowrap;
+    }
+
+    .terminal-shell--exit .terminal-shell__footer-actions .menu-button {
+      width: min(240px, calc((100% - 14px) / 2));
     }
 
     .terminal-shell--results .terminal-shell__content {
       align-content: start;
       overflow: hidden;
-      padding-top: clamp(6px, 0.8vw, 12px);
+      padding-top: clamp(4px, 0.6vw, 8px);
+      padding-bottom: clamp(4px, 0.6vw, 8px);
     }
 
     .terminal-leaders__table,
@@ -350,11 +632,20 @@
     .terminal-leaders__table {
       display: grid;
       gap: 8px;
+      width: min(100%, 900px);
     }
 
     .terminal-leaders__row {
-      min-height: 42px;
-      padding-block: 8px;
+      min-height: 38px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      white-space: pre;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
     }
 
     .terminal-titles__text {
@@ -373,29 +664,30 @@
 
     .terminal-results__stack {
       display: grid;
-      gap: 12px;
+      gap: 10px;
       align-content: start;
       min-height: 0;
+      font-family: inherit;
     }
 
     .terminal-results__layout {
-      width: min(100%, 860px);
+      width: min(100%, 900px);
       display: grid;
-      gap: 10px;
+      gap: 8px;
       align-content: start;
     }
 
     .terminal-results__summary {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 8px;
+      gap: 6px;
     }
 
     .terminal-results__metric {
-      min-height: 80px;
+      min-height: 82px;
       display: grid;
-      gap: 4px;
-      padding: 10px 10px 8px;
+      gap: 6px;
+      padding: 12px 10px 10px;
       border: 1px solid rgba(117, 162, 218, 0.16);
       background: linear-gradient(180deg, rgba(16, 22, 31, 0.86), rgba(21, 29, 40, 0.96));
       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
@@ -404,8 +696,8 @@
 
     .terminal-results__metric-label {
       color: var(--accent);
-      font-size: 10px;
-      letter-spacing: 0.18em;
+      font-size: 13px;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       text-align: center;
     }
@@ -415,12 +707,12 @@
       text-align: center;
       text-transform: uppercase;
       letter-spacing: 0.14em;
-      font-size: 15px;
+      font-size: 22px;
       font-weight: 700;
     }
 
     .terminal-results__metric-value--grade {
-      font-size: 20px;
+      font-size: 30px;
     }
 
     .terminal-results__two-col {
@@ -431,7 +723,7 @@
 
     .terminal-results__panel {
       display: grid;
-      gap: 8px;
+      gap: 6px;
       padding: 10px 12px 12px;
       border: 1px solid rgba(117, 162, 218, 0.16);
       background: linear-gradient(180deg, rgba(16, 22, 31, 0.86), rgba(21, 29, 40, 0.96));
@@ -440,7 +732,7 @@
 
     .terminal-results__panel-title {
       color: var(--accent);
-      font-size: 11px;
+      font-size: 12px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       text-align: center;
@@ -452,14 +744,14 @@
     }
 
     .terminal-results__reason {
-      padding: 8px 10px;
+      padding: 9px 10px;
       border: 1px solid rgba(117, 162, 218, 0.16);
       background: linear-gradient(180deg, rgba(29, 38, 51, 0.92), rgba(18, 24, 33, 0.92));
       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
       color: var(--text);
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      font-size: 11px;
+      font-size: 12px;
     }
 
     .terminal-results__comment {
@@ -467,7 +759,7 @@
       text-transform: uppercase;
       letter-spacing: 0.1em;
       line-height: 1.4;
-      font-size: 11px;
+      font-size: 14px;
       text-align: center;
       padding: 0 4px;
     }
@@ -479,21 +771,21 @@
 
     .terminal-results__result-summary {
       display: grid;
-      gap: 8px;
+      gap: 6px;
     }
 
     .terminal-results__result-lead {
       color: var(--text);
       text-align: center;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.14em;
       line-height: 1.55;
-      font-size: 12px;
+      font-size: 15px;
     }
 
     .terminal-results__result-threats {
       display: grid;
-      gap: 6px;
+      gap: 5px;
     }
 
     .terminal-results__result-threat {
@@ -501,20 +793,20 @@
       grid-template-columns: auto 1fr;
       gap: 10px;
       align-items: center;
-      padding: 8px 10px;
+      padding: 7px 10px;
       border: 1px solid rgba(117, 162, 218, 0.16);
       background: linear-gradient(180deg, rgba(29, 38, 51, 0.92), rgba(18, 24, 33, 0.92));
       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
       color: var(--text);
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      font-size: 11px;
+      letter-spacing: 0.12em;
+      font-size: 13px;
     }
 
     .terminal-results__result-threat-index {
       color: var(--accent);
-      font-size: 11px;
-      letter-spacing: 0.18em;
+      font-size: 13px;
+      letter-spacing: 0.16em;
     }
 
     .terminal-results__result-threat-text {
@@ -529,13 +821,13 @@
     .terminal-results__detail-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
+      gap: 8px;
       align-items: start;
     }
 
     .terminal-results__detail-column {
       display: grid;
-      gap: 10px;
+      gap: 8px;
       align-content: start;
     }
 
@@ -550,7 +842,7 @@
 
     .terminal-results__detail-title {
       color: var(--accent);
-      font-size: 11px;
+      font-size: 12px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       text-align: center;
@@ -567,7 +859,7 @@
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 10px;
       align-items: center;
-      padding: 6px 8px;
+      padding: 7px 9px;
       border: 1px solid rgba(117, 162, 218, 0.12);
       background: rgba(11, 16, 24, 0.28);
       clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px);
@@ -577,7 +869,7 @@
     .terminal-results__detail-value {
       text-transform: uppercase;
       letter-spacing: 0.1em;
-      font-size: 11px;
+      font-size: 13px;
       line-height: 1.35;
     }
 
@@ -589,6 +881,7 @@
       color: var(--text);
       text-align: right;
       font-weight: 700;
+      letter-spacing: 0.08em;
     }
 
     .terminal-results__detail-value--accent {
@@ -618,8 +911,8 @@
 
     .terminal-results__label {
       color: var(--accent);
-      font-size: 11px;
-      letter-spacing: 0.18em;
+      font-size: 12px;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       text-align: center;
     }
@@ -641,51 +934,69 @@
     .terminal-controls__list {
       width: min(100%, 760px);
       display: grid;
-      gap: 16px;
+      gap: 12px;
       align-content: center;
     }
 
-    .terminal-controls__group {
+    .terminal-controls__layout {
+      width: min(100%, 720px);
       display: grid;
-      gap: 8px;
+      gap: 12px;
+      align-content: center;
+      justify-items: center;
+    }
+
+    .terminal-controls__section {
+      width: min(100%, 660px);
+      display: grid;
+      gap: 10px;
+      justify-items: center;
+      padding: 0;
     }
 
     .terminal-controls__label {
       color: var(--accent);
-      font-size: 11px;
-      letter-spacing: 0.18em;
+      font-size: 16px;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
       text-align: center;
     }
 
     .terminal-controls__value {
-      padding: 16px 18px;
-      border: 1px solid rgba(117, 162, 218, 0.16);
+      width: 100%;
+      padding: 12px 18px;
+      border: 1px solid rgba(117, 162, 218, 0.20);
       background: linear-gradient(180deg, rgba(29, 38, 51, 0.92), rgba(18, 24, 33, 0.92));
       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
       color: var(--text);
       text-align: center;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      min-height: 54px;
+      letter-spacing: 0.18em;
+      min-height: 0;
       display: grid;
       place-items: center;
     }
 
-    .terminal-controls__value--small {
-      min-height: 0;
-      padding-block: 10px;
-      display: block;
+    .terminal-controls__value--keys {
+      font-size: 21px;
+      letter-spacing: 0.3em;
+      padding: 15px 18px 14px;
     }
 
     .terminal-controls__value--stacked {
       gap: 8px;
-      place-items: stretch;
-      text-align: left;
+      place-items: center;
+      text-align: center;
+      padding-top: 10px;
+      padding-bottom: 10px;
     }
 
     .terminal-controls__debug-line {
+      color: var(--text);
       text-align: center;
+      letter-spacing: 0.15em;
+      line-height: 1.35;
+      font-size: 16px;
     }
 
     .terminal-catalog__grid {
@@ -856,7 +1167,7 @@
     #resultActions {
       justify-content: center;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 8px;
     }
 
     .page-button {
@@ -870,7 +1181,7 @@
       text-transform: uppercase;
       letter-spacing: 0.16em;
       font: inherit;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 10px);
       cursor: pointer;
@@ -879,27 +1190,45 @@
     .result-action-button {
       min-width: 0;
       min-height: 0;
-      width: min(226px, 30vw);
+      width: min(246px, 28vw);
       aspect-ratio: 1217 / 154;
       padding: 0;
       border: 0;
       background: url("assets/ui/menu_button_01.png") center center / 100% 100% no-repeat;
       color: var(--text);
       font-family: "BoldPixels", "Orbitron", "Rajdhani", sans-serif;
-      font-size: 11px;
+      font-size: 15px;
       font-weight: 700;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
       display: grid;
       place-items: center;
       cursor: pointer;
+      position: relative;
+      text-align: center;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.72);
+      overflow: visible;
       transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
       filter: brightness(1) saturate(1);
     }
 
     .result-action-button span {
       position: relative;
-      transform: translateY(3px);
+      z-index: 1;
+      transform: translateY(0px);
+    }
+
+    .result-action-button::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 6.5% 51%, rgba(255, 98, 40, 0.38), transparent 6%),
+        radial-gradient(circle at 93.5% 51%, rgba(255, 98, 40, 0.38), transparent 6%);
+      opacity: 0.72;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      transition: opacity 120ms ease, background 120ms ease;
     }
 
     .result-action-button:hover,
@@ -916,6 +1245,21 @@
     .result-action-button:hover::before,
     .result-action-button:focus-visible::before {
       opacity: 1;
+      background:
+        radial-gradient(circle at 6.5% 51%, rgba(255, 128, 72, 0.5), transparent 6%),
+        radial-gradient(circle at 93.5% 51%, rgba(255, 128, 72, 0.5), transparent 6%);
+    }
+
+    .result-action-button.is-clicked,
+    .result-action-button.is-clicked:hover,
+    .result-action-button.is-clicked:focus-visible {
+      color: #ff2f2f;
+      transform: translateY(-1px);
+      filter: brightness(1.17) saturate(1.22);
+      box-shadow:
+        0 0 0 1px rgba(255, 102, 56, 0.18) inset,
+        0 0 24px rgba(255, 86, 40, 0.22),
+        0 0 10px rgba(255, 66, 28, 0.12);
     }
 
     .page-button:hover,
@@ -939,26 +1283,18 @@
         letter-spacing: 0.18em;
       }
 
-      .menu-buttons {
-        top: 40%;
-      }
-
-      .menu-brand {
-        margin-bottom: 24px;
-      }
-
       .menu-brand__title {
-        font-size: clamp(24px, 6vw, 36px);
+        font-size: calc(clamp(24px, 6vw, 36px) * var(--menu-logo-scale));
       }
 
       .menu-brand__stars {
-        font-size: 11px;
+        font-size: max(11px, calc(11px * var(--menu-logo-scale)));
         letter-spacing: 0.26em;
       }
 
       .menu-brand__rule {
-        width: min(180px, 42vw);
-        margin-top: 12px;
+        width: min(calc(180px * var(--menu-logo-scale)), calc(42vw * var(--menu-logo-scale)));
+        margin-top: calc(12px * var(--menu-logo-scale));
       }
 
       .page-actions {
@@ -982,7 +1318,12 @@
       }
 
       .settings-shell {
-        width: calc(100vw - 20px);
+        width: min(
+          calc(var(--app-viewport-width) - 20px),
+          calc((var(--app-viewport-height) - 20px) * 1536 / 1024)
+        );
+        max-width: calc(var(--app-viewport-width) - 20px);
+        max-height: calc(var(--app-viewport-height) - 20px);
         padding: clamp(52px, 8vw, 68px) clamp(38px, 6vw, 54px) clamp(48px, 7vw, 64px);
       }
     }
@@ -1030,9 +1371,33 @@
         </div>
       </div>
     </section>
+
+    <section class="pause-overlay" id="pauseScreen" hidden aria-live="polite">
+      <div class="terminal-shell terminal-shell--pause">
+        <div class="terminal-shell__header">
+          <div class="terminal-shell__title">ПАУЗА</div>
+        </div>
+        <div class="terminal-shell__content"></div>
+        <div class="terminal-shell__footer">
+          <div class="terminal-shell__footer-actions">
+            <button class="menu-button pause-continue" type="button" data-action="resume"><span>ПРОДОЛЖИТЬ</span></button>
+            <button class="menu-button pause-menu" type="button" data-action="menu"><span>В МЕНЮ</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="mobile-controls" id="mobileControls" hidden aria-hidden="true">
+      <div class="mobile-controls__joystick-zone" id="joystickZone">
+        <div class="mobile-controls__joystick-base" id="joystickBase">
+          <div class="mobile-controls__joystick-knob" id="joystickKnob"></div>
+        </div>
+      </div>
+      <div class="mobile-controls__fire" id="mobileFireButton">ОГОНЬ</div>
+    </div>
   </main>
 
-  <script src="js/game.js?v=20260614_1" charset="UTF-8"></script>
+  <script src="js/game.js?v=20260617_2" charset="UTF-8"></script>
   <script>
     const uiRoot = document.getElementById("uiRoot");
     const menuScreen = document.getElementById("menuScreen");
@@ -1046,6 +1411,16 @@
     const resultTitle = document.getElementById("resultTitle");
     const resultBody = document.getElementById("resultBody");
     const resultActions = document.getElementById("resultActions");
+    const pauseScreen = document.getElementById("pauseScreen");
+    const pauseContinueButton = document.querySelector(".pause-continue");
+    const pauseMenuButton = document.querySelector(".pause-menu");
+    const mobileControls = document.getElementById("mobileControls");
+    const joystickZone = document.getElementById("joystickZone");
+    const joystickBase = document.getElementById("joystickBase");
+    const joystickKnob = document.getElementById("joystickKnob");
+    const mobileFireButton = document.getElementById("mobileFireButton");
+    const menuBrand = menuScreen.querySelector(".menu-brand");
+    const menuList = document.getElementById("menuList");
     const menuButtons = Array.from(document.querySelectorAll("#menuScreen [data-action]"));
 
     const mainMenuOrder = ["play", "settings", "leaders", "titles", "exit"];
@@ -1054,6 +1429,294 @@
     window.__resultOverlayActive = false;
     let menuActivationTimer = null;
     let menuActivationPending = false;
+    const settingsState = {
+      developerMode: false
+    };
+    const isTouchInterface = window.__isTouchDevice === true;
+    const mobileJoystick = {
+      pointerId: null,
+      centerX: 0,
+      centerY: 0,
+      maxDistance: 44
+    };
+    const mobileFire = {
+      pointerId: null
+    };
+    let layoutUpdateFrame = null;
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function getViewportMetrics() {
+      const viewportWidthCandidates = [window.innerWidth];
+      const viewportHeightCandidates = [window.innerHeight];
+      if (window.visualViewport) {
+        if (Number.isFinite(window.visualViewport.width) && window.visualViewport.width > 0) {
+          viewportWidthCandidates.push(window.visualViewport.width);
+        }
+        if (Number.isFinite(window.visualViewport.height) && window.visualViewport.height > 0) {
+          viewportHeightCandidates.push(window.visualViewport.height);
+        }
+      }
+
+      return {
+        width: Math.max(0, Math.floor(Math.min(...viewportWidthCandidates))),
+        height: Math.max(0, Math.floor(Math.min(...viewportHeightCandidates)))
+      };
+    }
+
+    function updateViewportCssVariables() {
+      const viewport = getViewportMetrics();
+      document.documentElement.style.setProperty("--app-viewport-width", `${viewport.width}px`);
+      document.documentElement.style.setProperty("--app-viewport-height", `${viewport.height}px`);
+      return viewport;
+    }
+
+    function resetMenuLayoutVariables() {
+      const rootStyle = document.documentElement.style;
+      rootStyle.setProperty("--menu-logo-scale", "1");
+      rootStyle.setProperty("--menu-button-scale", "1");
+      rootStyle.setProperty("--menu-stack-gap", "34px");
+      rootStyle.setProperty("--menu-list-gap", "12px");
+    }
+
+    function applyMenuLayout() {
+      const viewport = updateViewportCssVariables();
+      if (!menuScreen || menuScreen.hidden || !menuBrand || !menuList) {
+        return;
+      }
+
+      resetMenuLayoutVariables();
+
+      const rootStyle = document.documentElement.style;
+      const safeTop = 24;
+      const safeBottom = 24;
+      const minStackGap = 12;
+      const minListGap = 6;
+      const minLogoScale = 0.58;
+      const minButtonScale = 0.78;
+      let stackGap = 34;
+      let listGap = 12;
+      let logoScale = 1;
+      let buttonScale = 1;
+      const availableHeight = Math.max(0, viewport.height - safeTop - safeBottom);
+
+      if (availableHeight <= 0) {
+        return;
+      }
+
+      function readHeights() {
+        return {
+          brandHeight: Math.ceil(menuBrand.getBoundingClientRect().height),
+          listHeight: Math.ceil(menuList.getBoundingClientRect().height)
+        };
+      }
+
+      let { brandHeight, listHeight } = readHeights();
+      let totalHeight = brandHeight + stackGap + listHeight;
+
+      if (totalHeight > availableHeight) {
+        stackGap = Math.max(minStackGap, stackGap - (totalHeight - availableHeight));
+        rootStyle.setProperty("--menu-stack-gap", `${Math.round(stackGap)}px`);
+        totalHeight = brandHeight + stackGap + listHeight;
+      }
+
+      if (totalHeight > availableHeight && brandHeight > 0) {
+        const maxBrandHeight = Math.max(brandHeight * minLogoScale, availableHeight - stackGap - listHeight);
+        logoScale = clamp(maxBrandHeight / brandHeight, minLogoScale, 1);
+        rootStyle.setProperty("--menu-logo-scale", logoScale.toFixed(4));
+        ({ brandHeight, listHeight } = readHeights());
+        totalHeight = brandHeight + stackGap + listHeight;
+      }
+
+      if (totalHeight > availableHeight && listHeight > 0) {
+        const maxListHeight = Math.max(listHeight * minButtonScale, availableHeight - stackGap - brandHeight);
+        buttonScale = clamp(maxListHeight / listHeight, minButtonScale, 1);
+        listGap = Math.max(minListGap, Math.round(12 * buttonScale));
+        rootStyle.setProperty("--menu-button-scale", buttonScale.toFixed(4));
+        rootStyle.setProperty("--menu-list-gap", `${listGap}px`);
+        ({ brandHeight, listHeight } = readHeights());
+        totalHeight = brandHeight + stackGap + listHeight;
+      }
+
+      for (let attempt = 0; attempt < 8 && totalHeight > availableHeight; attempt += 1) {
+        if (logoScale > minLogoScale) {
+          logoScale = clamp(logoScale - 0.04, minLogoScale, 1);
+          rootStyle.setProperty("--menu-logo-scale", logoScale.toFixed(4));
+        } else if (buttonScale > minButtonScale) {
+          buttonScale = clamp(buttonScale - 0.03, minButtonScale, 1);
+          rootStyle.setProperty("--menu-button-scale", buttonScale.toFixed(4));
+          listGap = Math.max(minListGap, Math.round(12 * buttonScale));
+          rootStyle.setProperty("--menu-list-gap", `${listGap}px`);
+        } else if (stackGap > minStackGap) {
+          stackGap = Math.max(minStackGap, stackGap - 2);
+          rootStyle.setProperty("--menu-stack-gap", `${Math.round(stackGap)}px`);
+        } else {
+          break;
+        }
+
+        ({ brandHeight, listHeight } = readHeights());
+        totalHeight = brandHeight + stackGap + listHeight;
+      }
+    }
+
+    function scheduleLayoutUpdate() {
+      if (layoutUpdateFrame !== null) {
+        window.cancelAnimationFrame(layoutUpdateFrame);
+      }
+
+      layoutUpdateFrame = window.requestAnimationFrame(() => {
+        layoutUpdateFrame = null;
+        applyMenuLayout();
+      });
+    }
+
+    function syncDeveloperModeSetting() {
+      if (typeof window.__setDeveloperModeEnabled === "function") {
+        window.__setDeveloperModeEnabled(settingsState.developerMode);
+      } else {
+        window.__developerModeEnabled = settingsState.developerMode;
+      }
+    }
+
+    function toggleDeveloperModeSetting() {
+      settingsState.developerMode = !settingsState.developerMode;
+      syncDeveloperModeSetting();
+    }
+
+    function setMobileControlsVisible(visible) {
+      if (!mobileControls) {
+        return;
+      }
+
+      mobileControls.hidden = !visible;
+    }
+
+    function resetJoystickVisual() {
+      if (!joystickBase || !joystickKnob) {
+        return;
+      }
+
+      joystickBase.classList.remove("is-visible");
+      joystickKnob.style.transform = "translate(0px, 0px)";
+    }
+
+    function resetMobileJoystick() {
+      mobileJoystick.pointerId = null;
+      if (typeof window.__setMobileMoveVector === "function") {
+        window.__setMobileMoveVector(0, 0);
+      }
+      resetJoystickVisual();
+    }
+
+    function resetMobileFire() {
+      mobileFire.pointerId = null;
+      mobileFireButton?.classList.remove("is-active");
+      if (typeof window.__setMobileFireActive === "function") {
+        window.__setMobileFireActive(false);
+      }
+    }
+
+    function clampMobileJoystickDelta(dx, dy) {
+      const distance = Math.hypot(dx, dy);
+      if (distance <= mobileJoystick.maxDistance || distance === 0) {
+        return { dx, dy };
+      }
+
+      const ratio = mobileJoystick.maxDistance / distance;
+      return {
+        dx: dx * ratio,
+        dy: dy * ratio
+      };
+    }
+
+    function updateMobileJoystick(pointerX, pointerY) {
+      const clamped = clampMobileJoystickDelta(pointerX - mobileJoystick.centerX, pointerY - mobileJoystick.centerY);
+      joystickKnob.style.transform = `translate(${clamped.dx}px, ${clamped.dy}px)`;
+      if (typeof window.__setMobileMoveVector === "function") {
+        window.__setMobileMoveVector(clamped.dx / mobileJoystick.maxDistance, clamped.dy / mobileJoystick.maxDistance);
+      }
+    }
+
+    function bindMobileControls() {
+      if (!isTouchInterface || !joystickZone || !joystickBase || !joystickKnob || !mobileFireButton) {
+        return;
+      }
+
+      joystickZone.addEventListener("pointerdown", (event) => {
+        if (event.pointerType === "mouse" || mobileJoystick.pointerId !== null) {
+          return;
+        }
+
+        event.preventDefault();
+        mobileJoystick.pointerId = event.pointerId;
+        mobileJoystick.centerX = event.clientX;
+        mobileJoystick.centerY = event.clientY;
+        joystickBase.style.left = mobileJoystick.centerX + "px";
+        joystickBase.style.top = mobileJoystick.centerY + "px";
+        joystickBase.classList.add("is-visible");
+        updateMobileJoystick(event.clientX, event.clientY);
+      });
+
+      joystickZone.addEventListener("pointermove", (event) => {
+        if (event.pointerId !== mobileJoystick.pointerId) {
+          return;
+        }
+
+        event.preventDefault();
+        updateMobileJoystick(event.clientX, event.clientY);
+      });
+
+      function releaseJoystick(event) {
+        if (event.pointerId !== mobileJoystick.pointerId) {
+          return;
+        }
+
+        event.preventDefault();
+        resetMobileJoystick();
+      }
+
+      joystickZone.addEventListener("pointerup", releaseJoystick);
+      joystickZone.addEventListener("pointercancel", releaseJoystick);
+
+      mobileFireButton.addEventListener("pointerdown", (event) => {
+        if (event.pointerType === "mouse" || mobileFire.pointerId !== null) {
+          return;
+        }
+
+        event.preventDefault();
+        mobileFire.pointerId = event.pointerId;
+        mobileFireButton.classList.add("is-active");
+        if (typeof window.__setMobileFireActive === "function") {
+          window.__setMobileFireActive(true);
+        }
+      });
+
+      function releaseFire(event) {
+        if (event.pointerId !== mobileFire.pointerId) {
+          return;
+        }
+
+        event.preventDefault();
+        resetMobileFire();
+      }
+
+      mobileFireButton.addEventListener("pointerup", releaseFire);
+      mobileFireButton.addEventListener("pointercancel", releaseFire);
+
+      window.addEventListener("pointerup", releaseJoystick);
+      window.addEventListener("pointercancel", releaseJoystick);
+      window.addEventListener("pointerup", releaseFire);
+      window.addEventListener("pointercancel", releaseFire);
+      window.addEventListener("blur", () => {
+        resetMobileJoystick();
+        resetMobileFire();
+      });
+    }
+
+    syncDeveloperModeSetting();
+
     const pages = {
       settings: {
         title: "НАСТРОЙКИ",
@@ -1116,15 +1779,9 @@
       },
       exit: {
         title: "ВЫХОД",
-        tag: "SYSTEM EXIT",
-        body: [
-          "БРАУЗЕР МОЖЕТ ЗАБЛОКИРОВАТЬ ЗАКРЫТИЕ ОКНА.",
-          "ЕСЛИ ЭТО ПРОИЗОЙДЁТ, ПРОСТО ЗАКРОЙТЕ ВКЛАДКУ."
-        ],
-        actions: [
-          { label: "ВЫЙТИ", action: "close" },
-          { label: "НАЗАД", action: "back" }
-        ]
+        tag: "",
+        body: [],
+        actions: []
       }
     };
 
@@ -1138,10 +1795,45 @@
     function renderMenuSelection() {
     }
 
+    const terminalActionCommits = new WeakMap();
+
+    function syncTerminalButtonSelection(button) {
+      const context = getActiveKeyboardContext();
+      const buttonIndex = context.buttons.indexOf(button);
+      if (buttonIndex === -1) {
+        return;
+      }
+
+      setKeyboardSelectionIndex(context.kind, buttonIndex);
+      applyKeyboardSelection(context.kind, context.buttons, buttonIndex);
+    }
+
     function bindTerminalAction(button, commit) {
-      button.addEventListener("click", () => {
+      terminalActionCommits.set(button, commit);
+      button.addEventListener("mouseenter", () => {
+        syncTerminalButtonSelection(button);
+      });
+      button.addEventListener("focus", () => {
+        syncTerminalButtonSelection(button);
+      });
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        syncTerminalButtonSelection(button);
         triggerTerminalAction(button, commit);
       });
+    }
+
+    function activateTerminalButton(button) {
+      if (!button) {
+        return;
+      }
+
+      const commit = terminalActionCommits.get(button);
+      if (!commit) {
+        return;
+      }
+
+      triggerTerminalAction(button, commit);
     }
 
     function triggerTerminalAction(button, commit) {
@@ -1185,6 +1877,7 @@
                 <button class="menu-button settings-button terminal-button" type="button"><span>УПРАВЛЕНИЕ</span></button>
                 <button class="menu-button settings-button terminal-button" type="button"><span>ЗВУК</span></button>
                 <button class="menu-button settings-button terminal-button" type="button"><span>ЯЗЫК</span></button>
+                <button class="menu-button settings-button terminal-button settings-developer-toggle" type="button"><span>РЕЖИМ РАЗРАБОТЧИКА: ${settingsState.developerMode ? "ВКЛ" : "ВЫКЛ"}</span></button>
               </div>
             </div>
             <div class="settings-shell__footer terminal-shell__footer">
@@ -1201,24 +1894,24 @@
               <div class="terminal-shell__title">${page.title}</div>
             </div>
             <div class="terminal-shell__content">
-              <div class="terminal-controls__list">
-                <div class="terminal-controls__group">
+              <div class="terminal-controls__layout">
+                <section class="terminal-controls__section">
                   <div class="terminal-controls__label">ДВИЖЕНИЕ</div>
-                  <div class="terminal-controls__value">W A S D</div>
-                </div>
-                <div class="terminal-controls__group">
+                  <div class="terminal-controls__value terminal-controls__value--keys">W A S D / СТРЕЛКИ</div>
+                </section>
+                <section class="terminal-controls__section">
                   <div class="terminal-controls__label">БОЙ</div>
                   <div class="terminal-controls__value">ЛКМ — ОГОНЬ</div>
-                </div>
-                <div class="terminal-controls__group">
+                </section>
+                <section class="terminal-controls__section">
                   <div class="terminal-controls__label">ОТЛАДКА</div>
                   <div class="terminal-controls__value terminal-controls__value--stacked">
                     <div class="terminal-controls__debug-line">Z — GODMODE</div>
-                    <div class="terminal-controls__debug-line">B — OVERLAY БОССА И ЗОН</div>
+                    <div class="terminal-controls__debug-line">B — OVERLAY</div>
                     <div class="terminal-controls__debug-line">V / C — ТАЙМЕР ЭТАПОВ</div>
                     <div class="terminal-controls__debug-line">Q / E — СКОРОСТЬ ИГРЫ</div>
                   </div>
-                </div>
+                </section>
               </div>
             </div>
             <div class="terminal-shell__footer">
@@ -1309,11 +2002,11 @@
             </div>
             <div class="terminal-shell__content">
               <div class="terminal-leaders__table">
-                <div class="page-row terminal-leaders__row">#01  ОПЕРАТОР 1  -  000000</div>
-                <div class="page-row terminal-leaders__row">#02  ОПЕРАТОР 2  -  000000</div>
-                <div class="page-row terminal-leaders__row">#03  ОПЕРАТОР 3  -  000000</div>
-                <div class="page-row terminal-leaders__row">#04  ОПЕРАТОР 4  -  000000</div>
-                <div class="page-row terminal-leaders__row">#05  ОПЕРАТОР 5  -  000000</div>
+                <div class="page-row terminal-leaders__row">#01    ОПЕРАТОР 1                         000000</div>
+                <div class="page-row terminal-leaders__row">#02    ОПЕРАТОР 2                         000000</div>
+                <div class="page-row terminal-leaders__row">#03    ОПЕРАТОР 3                         000000</div>
+                <div class="page-row terminal-leaders__row">#04    ОПЕРАТОР 4                         000000</div>
+                <div class="page-row terminal-leaders__row">#05    ОПЕРАТОР 5                         000000</div>
               </div>
             </div>
             <div class="terminal-shell__footer">
@@ -1427,6 +2120,26 @@
         `;
       }
 
+      if (key === "exit") {
+        return `
+          <div class="${shellClass}">
+            <div class="terminal-shell__header">
+              <div class="terminal-shell__title">${page.title}</div>
+            </div>
+            <div class="terminal-shell__content">
+              <div class="terminal-exit__question">
+                ВЫЙТИ ИЗ ИГРЫ?
+              </div>
+              <div class="terminal-shell__footer-actions">
+                <button class="menu-button terminal-exit-yes" type="button" data-action="close"><span>ДА</span></button>
+                <button class="menu-button terminal-exit-no" type="button" data-action="back"><span>НЕТ</span></button>
+              </div>
+            </div>
+            <div class="terminal-shell__footer" aria-hidden="true"></div>
+          </div>
+        `;
+      }
+
       return "";
     }
 
@@ -1436,13 +2149,25 @@
         return;
       }
 
-      pageHeader.hidden = ["settings", "controls", "catalog", "leaders", "titles", "results"].includes(key);
+      pageHeader.hidden = ["settings", "controls", "catalog", "leaders", "titles", "results", "exit"].includes(key);
       pageTitle.textContent = page.title;
-      pageTag.textContent = ["settings", "controls", "catalog", "leaders", "titles", "results"].includes(key) ? "" : page.tag;
+      pageTag.textContent = ["settings", "controls", "catalog", "leaders", "titles", "results", "exit"].includes(key) ? "" : page.tag;
 
-      if (["settings", "controls", "catalog", "leaders", "titles", "results"].includes(key)) {
+      if (["settings", "controls", "catalog", "leaders", "titles", "results", "exit"].includes(key)) {
         pageBody.innerHTML = renderShellPage(key);
         pageActions.innerHTML = "";
+        if (key === "exit") {
+          const yesButton = pageBody.querySelector(".terminal-exit-yes");
+          const noButton = pageBody.querySelector(".terminal-exit-no");
+          if (yesButton) {
+            bindTerminalAction(yesButton, () => window.close());
+          }
+          if (noButton) {
+            bindTerminalAction(noButton, () => showMenu());
+          }
+          return;
+        }
+
         const backButton = pageBody.querySelector(".terminal-back");
         if (backButton) {
           const backTarget = key === "controls" ? "settings" : "menu";
@@ -1459,6 +2184,14 @@
           const settingsButtons = pageBody.querySelectorAll(".settings-button");
           if (settingsButtons[0]) {
             bindTerminalAction(settingsButtons[0], () => showPage("controls"));
+          }
+          const developerToggleButton = pageBody.querySelector(".settings-developer-toggle");
+          if (developerToggleButton) {
+            bindTerminalAction(developerToggleButton, () => {
+              toggleDeveloperModeSetting();
+              renderPage("settings");
+              syncKeyboardSelection();
+            });
           }
         }
         return;
@@ -1485,6 +2218,9 @@
 
       const friendlyLabelMap = {
         "Снаряд врага": "Снаряды врага",
+        "Снаряд босса": "Снаряды босса",
+        "Выстрел зигзага": "Выстрелы зигзага",
+        "Рассеянный выстрел босса": "Рассеянные выстрелы босса",
         "Удар дрона": "Удары дрона",
         "Осколки": "Осколки",
         "Лапа босса": "Лапы босса",
@@ -1574,7 +2310,6 @@
             title: "ПОЛУЧЕННЫЙ УРОН",
             rows: [
               { label: "Попаданий", value: damageStats.hits ?? currentResultData.hitsText ?? "-" },
-              { label: "Получено урона", value: formatResultDamageValue(damageStats.damageTaken ?? currentResultData.totalDamageText) },
               { label: "Замедлений", value: damageStats.slows ?? "-" }
             ]
           },
@@ -1674,13 +2409,15 @@
         button.type = "button";
         button.innerHTML = `<span>${item.label}</span>`;
         button.dataset.action = item.action;
-        button.addEventListener("click", onResultActionClick);
+        bindTerminalAction(button, () => onResultActionClick({ currentTarget: button }));
         resultActions.appendChild(button);
       }
     }
 
     function showMenu() {
       view = "menu";
+      currentPageKey = null;
+      pageScreen.classList.remove("page-shell--exit-modal");
       menuActivationPending = false;
       if (menuActivationTimer !== null) {
         window.clearTimeout(menuActivationTimer);
@@ -1701,16 +2438,23 @@
       window.__resultOverlayActive = false;
       setDomMenuActive(true);
       uiRoot.setAttribute("aria-label", "Главное меню");
+      scheduleLayoutUpdate();
+      syncKeyboardSelection();
     }
 
     function showPage(key) {
       view = key;
+      currentPageKey = key;
+      pageSelectedIndex = 0;
       renderPage(key);
-      menuScreen.hidden = true;
+      menuScreen.hidden = key === "exit" ? false : true;
       pageScreen.hidden = false;
       resultScreen.hidden = true;
+      pageScreen.classList.toggle("page-shell--exit-modal", key === "exit");
       setDomMenuActive(true);
       uiRoot.setAttribute("aria-label", pages[key].title);
+      scheduleLayoutUpdate();
+      syncKeyboardSelection();
     }
 
     function selectMenu(delta) {
@@ -1738,6 +2482,7 @@
     function showResult(data) {
       currentResultData = data;
       resultDetailsExpanded = false;
+      resultSelectedIndex = 0;
       window.__resultOverlayActive = true;
       view = "result";
       uiRoot.hidden = false;
@@ -1748,6 +2493,7 @@
       renderResultRows();
       setDomMenuActive(true);
       uiRoot.setAttribute("aria-label", data.outcome === "victory" ? "Победа" : "Поражение");
+      syncKeyboardSelection();
       window.requestAnimationFrame(() => {
         const firstAction = resultActions.querySelector("button");
         if (firstAction) {
@@ -1793,8 +2539,163 @@
       if (action === "menu") {
         resultScreen.hidden = true;
         window.__resultOverlayActive = false;
+        if (typeof window.__returnToMenu === "function") {
+          window.__returnToMenu();
+        }
         showMenu();
       }
+    }
+
+    function onPauseActionClick(event) {
+      const action = event.currentTarget.dataset.action;
+
+      if (action === "resume") {
+        if (typeof window.__resumeGameFromPause === "function") {
+          window.__resumeGameFromPause();
+        }
+        pauseScreen.hidden = true;
+        return;
+      }
+
+      if (action === "menu") {
+        if (typeof window.__returnToMenu === "function") {
+          window.__returnToMenu();
+        }
+        showMenu();
+        pauseScreen.hidden = true;
+      }
+    }
+
+    let pageSelectedIndex = 0;
+    let resultSelectedIndex = 0;
+    let pauseSelectedIndex = 0;
+    let currentPageKey = null;
+
+    function setKeyboardSelectionIndex(kind, index) {
+      if (kind === "menu") {
+        selectedIndex = index;
+      } else if (kind === "page") {
+        pageSelectedIndex = index;
+      } else if (kind === "result") {
+        resultSelectedIndex = index;
+      } else if (kind === "pause") {
+        pauseSelectedIndex = index;
+      }
+    }
+
+    function getActiveKeyboardContext() {
+      if (!pauseScreen.hidden && typeof window.__isGamePaused === "function" && window.__isGamePaused()) {
+        return {
+          kind: "pause",
+          buttons: [pauseContinueButton, pauseMenuButton].filter(Boolean),
+          index: pauseSelectedIndex
+        };
+      }
+
+      if (!resultScreen.hidden) {
+        return {
+          kind: "result",
+          buttons: Array.from(resultActions.querySelectorAll("button")),
+          index: resultSelectedIndex
+        };
+      }
+
+      if (!pageScreen.hidden) {
+        return {
+          kind: "page",
+          pageKey: currentPageKey,
+          buttons: Array.from(pageScreen.querySelectorAll("button")),
+          index: pageSelectedIndex
+        };
+      }
+
+      return {
+        kind: "menu",
+        buttons: menuButtons,
+        index: selectedIndex
+      };
+    }
+
+    function applyKeyboardSelection(kind, buttons, index) {
+      buttons.forEach((button, buttonIndex) => {
+        button.classList.toggle("is-selected", buttonIndex === index);
+      });
+
+      const selectedButton = buttons[index];
+      if (selectedButton) {
+        selectedButton.focus({ preventScroll: true });
+      }
+    }
+
+    function syncKeyboardSelection() {
+      const { kind, buttons, index } = getActiveKeyboardContext();
+      if (!buttons.length) {
+        return;
+      }
+
+      applyKeyboardSelection(kind, buttons, Math.max(0, Math.min(index, buttons.length - 1)));
+    }
+
+    function moveKeyboardSelection(delta) {
+      const context = getActiveKeyboardContext();
+      const { kind, buttons } = context;
+      if (!buttons.length) {
+        return;
+      }
+
+      const nextIndex = (context.index + delta + buttons.length) % buttons.length;
+
+      setKeyboardSelectionIndex(kind, nextIndex);
+      applyKeyboardSelection(kind, buttons, nextIndex);
+    }
+
+    function isHorizontalKeyboardContext(context) {
+      if (context.kind === "pause" || context.kind === "result") {
+        return true;
+      }
+
+      if (context.kind === "page" && context.pageKey === "exit") {
+        return true;
+      }
+
+      return false;
+    }
+
+    function isSelectionKey(event, horizontal) {
+      if (horizontal) {
+        return event.code === "ArrowLeft" || event.code === "ArrowRight" || event.code === "KeyA" || event.code === "KeyD";
+      }
+
+      return event.code === "ArrowUp" || event.code === "ArrowDown" || event.code === "KeyW" || event.code === "KeyS";
+    }
+
+    function getSelectionDelta(event, horizontal) {
+      if (horizontal) {
+        if (event.code === "ArrowLeft" || event.code === "KeyA") {
+          return -1;
+        }
+
+        if (event.code === "ArrowRight" || event.code === "KeyD") {
+          return 1;
+        }
+      } else {
+        if (event.code === "ArrowUp" || event.code === "KeyW") {
+          return -1;
+        }
+
+        if (event.code === "ArrowDown" || event.code === "KeyS") {
+          return 1;
+        }
+      }
+
+      return 0;
+    }
+
+    function activateKeyboardSelection() {
+      const { kind, buttons, index } = getActiveKeyboardContext();
+      const button = buttons[index];
+
+      activateTerminalButton(button);
     }
 
     menuButtons.forEach((button, index) => {
@@ -1803,6 +2704,17 @@
         activateMenuSelection(mainMenuOrder[selectedIndex], button);
       });
     });
+
+    if (pauseContinueButton) {
+      bindTerminalAction(pauseContinueButton, () => onPauseActionClick({ currentTarget: pauseContinueButton }));
+    }
+
+    if (pauseMenuButton) {
+      bindTerminalAction(pauseMenuButton, () => onPauseActionClick({ currentTarget: pauseMenuButton }));
+    }
+
+    bindMobileControls();
+    syncKeyboardSelection();
 
     window.__showRunResult = function showRunResult(data) {
       currentResultData = data;
@@ -1816,17 +2728,119 @@
     };
 
     window.addEventListener("keydown", (event) => {
-      if (window.__getScene && window.__getScene() !== "menu") {
+      if (event.defaultPrevented) {
         return;
       }
 
-      if (view !== "menu" && event.code === "Escape") {
-        showMenu();
+      const pauseActive = typeof window.__isGamePaused === "function" && window.__isGamePaused();
+      const resultActive = !resultScreen.hidden;
+      const pageActive = !pageScreen.hidden;
+      const sceneValue = typeof window.__getScene === "function" ? window.__getScene() : "menu";
+
+      if (pauseActive) {
+        const context = getActiveKeyboardContext();
+        const horizontal = isHorizontalKeyboardContext(context);
+
+        if (event.code === "Escape") {
+          if (typeof window.__resumeGameFromPause === "function") {
+            window.__resumeGameFromPause();
+          }
+          pauseScreen.hidden = true;
+          event.preventDefault();
+          return;
+        }
+
+        if (isSelectionKey(event, horizontal)) {
+          const delta = getSelectionDelta(event, horizontal);
+          if (delta !== 0) {
+            moveKeyboardSelection(delta);
+          }
+          event.preventDefault();
+          return;
+        }
+
+        if (event.code === "Enter" || event.code === "Space") {
+          activateKeyboardSelection();
+          event.preventDefault();
+        }
+        return;
+      }
+
+      if (resultActive) {
+        const context = getActiveKeyboardContext();
+        const horizontal = isHorizontalKeyboardContext(context);
+
+        if (event.code === "Escape") {
+          resultScreen.hidden = true;
+          window.__resultOverlayActive = false;
+          if (typeof window.__returnToMenu === "function") {
+            window.__returnToMenu();
+          }
+          showMenu();
+          event.preventDefault();
+          return;
+        }
+
+        if (isSelectionKey(event, horizontal)) {
+          const delta = getSelectionDelta(event, horizontal);
+          if (delta !== 0) {
+            moveKeyboardSelection(delta);
+          }
+          event.preventDefault();
+          return;
+        }
+
+        if (event.code === "Enter" || event.code === "Space") {
+          activateKeyboardSelection();
+          event.preventDefault();
+        }
+        return;
+      }
+
+      if (pageActive) {
+        const context = getActiveKeyboardContext();
+        const horizontal = isHorizontalKeyboardContext(context);
+
+        if (event.code === "Escape") {
+          if (currentPageKey === "exit") {
+            const noButton = pageBody.querySelector(".terminal-exit-no");
+            if (noButton) {
+              activateTerminalButton(noButton);
+            } else {
+              showMenu();
+            }
+          } else {
+            showMenu();
+          }
+          event.preventDefault();
+          return;
+        }
+
+        if (isSelectionKey(event, horizontal)) {
+          const delta = getSelectionDelta(event, horizontal);
+          if (delta !== 0) {
+            moveKeyboardSelection(delta);
+          }
+          event.preventDefault();
+          return;
+        }
+
+        if (event.code === "Enter" || event.code === "Space") {
+          activateKeyboardSelection();
+          event.preventDefault();
+        }
+        return;
+      }
+
+      if (sceneValue === "game" && event.code === "Escape" && !event.repeat) {
+        if (typeof window.__toggleGamePause === "function") {
+          window.__toggleGamePause();
+        }
         event.preventDefault();
         return;
       }
 
-      if (view !== "menu") {
+      if (sceneValue !== "menu") {
         return;
       }
 
@@ -1837,19 +2851,34 @@
 
       if (event.code === "ArrowUp" || event.code === "KeyW") {
         selectMenu(-1);
+        syncKeyboardSelection();
         event.preventDefault();
       }
 
       if (event.code === "ArrowDown" || event.code === "KeyS") {
         selectMenu(1);
+        syncKeyboardSelection();
         event.preventDefault();
       }
 
-      if (event.code === "Enter") {
-        activateMenuSelection(mainMenuOrder[selectedIndex], menuButtons[selectedIndex]);
+      if (event.code === "Enter" || event.code === "Space") {
+        const button = menuButtons[selectedIndex];
+        activateTerminalButton(button);
         event.preventDefault();
       }
     });
+
+    updateViewportCssVariables();
+    window.addEventListener("resize", scheduleLayoutUpdate);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", scheduleLayoutUpdate);
+      window.visualViewport.addEventListener("scroll", scheduleLayoutUpdate);
+    }
+    if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === "function") {
+      document.fonts.ready.then(() => {
+        scheduleLayoutUpdate();
+      });
+    }
 
     showMenu();
 
@@ -1865,6 +2894,9 @@
           uiRoot.hidden = false;
           showMenu();
         }
+        setMobileControlsVisible(false);
+        resetMobileJoystick();
+        resetMobileFire();
         setDomMenuActive(true);
         return;
       }
@@ -1873,11 +2905,42 @@
         if (uiRoot.hidden) {
           uiRoot.hidden = false;
         }
+        pauseScreen.hidden = true;
+        setMobileControlsVisible(false);
+        resetMobileJoystick();
+        resetMobileFire();
         setDomMenuActive(true);
         return;
       }
 
-      if (!uiRoot.hidden) {
+      const pauseActive = typeof window.__isGamePaused === "function" && window.__isGamePaused();
+      pauseScreen.hidden = !(gameScene === "game" && pauseActive);
+
+      if (gameScene === "game" && pauseActive) {
+        if (uiRoot.hidden) {
+          uiRoot.hidden = false;
+        }
+        syncKeyboardSelection();
+        setMobileControlsVisible(false);
+        resetMobileJoystick();
+        resetMobileFire();
+        setDomMenuActive(false);
+        return;
+      }
+
+      if (gameScene === "game") {
+        menuScreen.hidden = true;
+        pageScreen.hidden = true;
+        resultScreen.hidden = true;
+      }
+
+      setMobileControlsVisible(isTouchInterface && gameScene === "game");
+
+      if (isTouchInterface && gameScene === "game") {
+        if (uiRoot.hidden) {
+          uiRoot.hidden = false;
+        }
+      } else if (!uiRoot.hidden) {
         uiRoot.hidden = true;
       }
       setDomMenuActive(false);

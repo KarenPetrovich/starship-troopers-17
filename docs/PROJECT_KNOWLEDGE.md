@@ -1,15 +1,5 @@
 # Cyber Spider Shooter Knowledge System
 
-## Session Close 2026-06-17
-
-- Footer-system unification across the non-game UI screens was successful.
-- Panel sizing is now constrained by both viewport width and viewport height.
-- The results and detailed results screens are working and remain part of the accepted terminal-style UI set.
-- The unified click-state path was only partially translated in code, and the real interface did not confirm the expected red BoldPixels click phase and delay for every activation path.
-- That click-state problem remains the next session's first task.
-- The next major project phase after fixing the button activation bug is the gameplay canvas / HUD readability pass.
-- Temporary screenshots, comparison PNGs, debug captures, and viewport tests should be archived to `C:\Future\CyberSpider_Archive`.
-
 This document replaces the old skills-first approach.
 
 The project now uses one unified knowledge system that combines:
@@ -139,9 +129,7 @@ Use these rules by default for all future tasks in this project.
 8. UI / HUD Design
 - shows the player what matters right now
 - Canvas keeps gameplay HUD, warnings, and combat overlays
-- HTML/CSS handles the main menu, settings, leaders, titles, and run results
-- the active source of truth for menu and results is `index.html`
-- canvas menu and canvas result screens are legacy paths
+- HTML/CSS handles main menu, settings, titles, results, and other non-game screens
 - the UI should feel atmospheric first through illustrated backgrounds, then through typography and custom button shapes
 - `Space_Game_GUI_PNG` is optional component stock, not the main UI philosophy
 
@@ -306,23 +294,12 @@ This order matters because later decisions must not break earlier readability de
 - Canvas stays for gameplay, HUD stub, battle warnings, and in-game overlays.
 - HTML/CSS stays for main menu, settings, titles, results, and other non-game screens.
 - The UI foundation is the drawn thematic background plus HTML/CSS interface plus game typography plus custom button shapes.
-- The current PC main-menu working baseline is `assets/ui/Main3.png` with the menu seated according to variant `B`.
 - `Space_Game_GUI_PNG` is optional component stock, not the UI foundation.
 - `UI_KIT_V2` is archived as an active course.
 - `Start_BTN`, `Table`, and pack-centered menu assembly are rejected experiments.
 - CSS-first as a separate philosophy is archived.
 - One screen at a time remains the rule.
 - The next UI target is still the main menu, after the current gameplay and results work is stable.
-
-## Main Menu Baseline
-
-- The PC main-menu composition is locked to `Main3.png` and variant `B` as the current working version.
-- Do not reopen menu position, size, or composition unless a separate request explicitly asks for it.
-- Follow-up work on the main menu should be limited to visual styling only:
-  - buttons
-  - frames
-  - accent colors
-  - menu underlay / backdrop
 
 ## Project Structure Rules
 
@@ -672,28 +649,3 @@ What is still weak:
 - The main project gameplay branch was restored from `C:\Future\CyberSpider_Archive\game.js.20260613_133518.bak`.
 - The 13.06 UI rollback is the confirmed cause of the stale canvas-shell that displaced the newer gameplay branch.
 - UI work is paused until gameplay verification is complete.
-
-## Session Close 2026-06-14
-
-- The active menu baseline uses `assets/ui/Main3.png`.
-- The standard `background + cover` menu scheme remains the current approach.
-- The menu stays on the right and the composition was verified against the real browser viewport, not only ideal screenshots.
-- The session's key viewport finding was `1920x812`.
-- Temporary diagnostics such as `BUILD TEST 001`, viewport text, and the `PILOT TERMINAL / SECTOR 17 / STATUS: READY` block were removed from the active UI.
-- Main-menu iteration should stay focused on the real viewport first, then on the minimum fix needed.
-
-## Session Errors 2026-06-14
-
-- The work looped too long around the menu background and container instead of analyzing the root cause earlier.
-- Extra layers, blur, `menu-art`, and similar cosmetic branches were explored too far.
-- Diagnostic overlays were repeatedly described as removed before they were actually gone.
-- The airplane being clipped out of frame should have been accepted earlier as the real viewport problem.
-- More iterations were spent on container variants than on diagnosing the user's real browser window.
-- Real-browser checking happened too late.
-
-## UI Lesson 2026-06-14
-
-- Check the user's real viewport first.
-- Then decide on the fix.
-- Do not start A/B/C variant series unless there is a clear decision to compare.
-- Avoid cosmetic micro-iteration loops when the true problem is viewport composition.

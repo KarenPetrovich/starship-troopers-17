@@ -1,20 +1,34 @@
-# OS files
+# OS
 .DS_Store
 Thumbs.db
 Desktop.ini
 
-# Editor settings
+# Editors
 .vscode/
 .idea/
+*.code-workspace
 
-# Logs and temporary files
+# Logs and temp
 *.log
 *.tmp
 *.temp
 *.swp
 *.swo
+*.bak
 
-# Common local cache folders
+# Local dependency/build folders
 node_modules/
 dist/
 build/
+
+# Codex / local review artifacts
+.codex-artifacts/
+
+# Local archives and exports
+*.zip
+*.7z
+*.rar
+
+# Optional source files not intended for the web runtime
+*.psd
+*.aseprite

@@ -1,10 +1,19 @@
 ﻿    const canvas = document.getElementById("game");
     const ctx = canvas.getContext("2d");
 let scene = "menu";
+let isDeveloperRun = false;
+const isTouchDevice = window.matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0 || "ontouchstart" in window;
+window.__isTouchDevice = isTouchDevice;
+const mobileInputState = {
+  moveX: 0,
+  moveY: 0,
+  fireActive: false
+};
 
     function layoutCanvas() {
       const isMenuScene = scene !== "game";
-      canvas.width = isMenuScene ? window.innerWidth : Math.floor(window.innerWidth * 0.585);
+      const gameplayWidth = isTouchDevice ? window.innerWidth : Math.floor(window.innerWidth * 0.585);
+      canvas.width = isMenuScene ? window.innerWidth : gameplayWidth;
       canvas.height = window.innerHeight;
       canvas.style.position = "fixed";
       canvas.style.zIndex = "2";
@@ -13,7 +22,7 @@ let scene = "menu";
         canvas.style.left = "0px";
         canvas.style.top = "0px";
       } else {
-        canvas.style.left = Math.round((window.innerWidth - canvas.width) / 2) + "px";
+        canvas.style.left = isTouchDevice ? "0px" : Math.round((window.innerWidth - canvas.width) / 2) + "px";
         canvas.style.top = Math.round((window.innerHeight - canvas.height) / 2) + "px";
       }
       document.body.classList.toggle("menu-screen", isMenuScene);
@@ -24,6 +33,13 @@ let scene = "menu";
     ctx.imageSmoothingEnabled = false;
 let isPlayerInvulnerable = false;
 const showDevUi = false;
+window.__developerModeEnabled = false;
+window.__setDeveloperModeEnabled = function setDeveloperModeEnabled(enabled) {
+  window.__developerModeEnabled = !!enabled;
+};
+window.__isDeveloperModeEnabled = function isDeveloperModeEnabledState() {
+  return window.__developerModeEnabled === true;
+};
 const gameplayDebugOverlayModes = {
   normal: 0,
   visual: 1,
@@ -34,6 +50,39 @@ window.__startGameFromMenu = function startGameFromMenu() {
   scene = "game";
   layoutCanvas();
   restartGame();
+};
+window.__getScene = function getScene() {
+  return scene;
+};
+window.__isGamePaused = function isGamePausedState() {
+  return scene === "game" && isPaused;
+};
+window.__toggleGamePause = function toggleGamePause() {
+  if (scene !== "game") {
+    return false;
+  }
+
+  isPaused = !isPaused;
+  clearInputState();
+  return isPaused;
+};
+window.__resumeGameFromPause = function resumeGameFromPause() {
+  if (scene !== "game") {
+    return;
+  }
+
+  isPaused = false;
+  clearInputState();
+};
+window.__returnToMenu = function returnToMenu() {
+  clearInputState();
+  restartGame();
+  isPaused = false;
+  scene = "menu";
+  layoutCanvas();
+};
+window.__abandonRunFromPause = function abandonRunFromPause() {
+  window.__returnToMenu();
 };
 let finalRunResult = null;
 const enemyDisplayNames = {
@@ -191,6 +240,10 @@ const shootCooldownMax = 15;
 let score = 0;
 let missionTimer = 0;
 let isPaused = false;
+let displayedHudHp = 5;
+let bossNearbyWarningTimer = 0;
+const bossNearbyWarningStartTick = 90 * 60;
+const bossNearbyWarningDuration = 180;
 let bossAnimationTimer = 0;
 let playerVisualTilt = 0;
 let playerExhaustTilt = 0;
@@ -496,6 +549,7 @@ function finalizeRunResult(outcome) {
     bossAppeared: runStats.bossAppeared,
     bossDefeated: runStats.bossDefeated,
     deathReason: runStats.deathReason || "",
+    isDeveloperRun,
     missionSeconds: Math.floor(missionTimer / 60),
     missionTimeText: formatMissionTime(),
     totalDamageText: formatStatNumber(runStats.damageTaken, 1),
@@ -577,6 +631,7 @@ function isPointOutsideViewport(pointX, pointY, margin) {
 }
 
 const spriteSheets = {
+  hud: loadSpriteImage("assets/ui/hud.png"),
   player: loadSpriteImage("assets/sprites/player_fighter.png"),
   enemy: loadSpriteImage("assets/sprites/enemy_ships.png"),
   bullets: loadSpriteImage("assets/sprites/bullets.png"),
@@ -620,6 +675,21 @@ const spriteSheets = {
 };
 
 const villageLevelBackground = loadSpriteImage("assets/background/village_level_main.png");
+const gameplayHudSpriteConfig = {
+  crop: { sx: 104, sy: 270, sw: 1361, sh: 426 },
+  anchorX: 12,
+  anchorY: 12,
+  widthFactor: 0.33,
+  minWidth: 300,
+  maxWidth: 390,
+  textBaseFontSize: 72,
+  areas: {
+    durabilityLabel: { x: 84, y: 56, width: 360, height: 38 },
+    hpBarFill: { x: 94, y: 110, width: 1138, height: 72 },
+    score: { x: 120, y: 286, width: 520, height: 60 },
+    time: { x: 714, y: 286, width: 470, height: 60 }
+  }
+};
 const villageBossStartMissionTicks = 120 * 60;
 const villageAtmosphereSources = [
   { id: "lair", x: 370, y: 150, smokeRate: 0.04, sparkRate: 0.01, smokeLimit: 6, sparkLimit: 2, smokeSpreadX: 18, smokeSpreadY: 8, smokeRadiusMin: 6, smokeRadiusMax: 10, smokeLifeMin: 114, smokeLifeMax: 154, smokeLiftMin: 0.11, smokeLiftMax: 0.20 },
@@ -4067,6 +4137,10 @@ function clearInputState() {
   for (const key in keys) {
     delete keys[key];
   }
+
+  mobileInputState.moveX = 0;
+  mobileInputState.moveY = 0;
+  mobileInputState.fireActive = false;
 }
 
 function clearPlayerSlowEffect() {
@@ -4074,6 +4148,28 @@ function clearPlayerSlowEffect() {
   playerWebOverlay.active = false;
   playerWebOverlay.timer = 0;
 }
+
+function isDeveloperModeEnabled() {
+  return window.__developerModeEnabled === true;
+}
+
+window.__setMobileMoveVector = function setMobileMoveVector(x, y) {
+  mobileInputState.moveX = clamp(Number(x) || 0, -1, 1);
+  mobileInputState.moveY = clamp(Number(y) || 0, -1, 1);
+};
+
+window.__setMobileFireActive = function setMobileFireActive(active) {
+  const nextActive = !!active;
+  mobileInputState.fireActive = nextActive;
+  keys["space"] = nextActive;
+};
+
+window.__clearMobileControls = function clearMobileControls() {
+  mobileInputState.moveX = 0;
+  mobileInputState.moveY = 0;
+  mobileInputState.fireActive = false;
+  keys["space"] = false;
+};
 
 function setInputKeyState(event, isPressed) {
   const key = event.key ? event.key.toLowerCase() : "";
@@ -4114,19 +4210,20 @@ window.addEventListener("keydown", (event) => {
   }
 
   if (scene === "game" && (event.code === "KeyP" || event.code === "Escape") && !event.repeat) {
-    isPaused = !isPaused;
-    clearInputState();
+    window.__toggleGamePause();
+    event.preventDefault();
+    return;
   }
 
-  if (scene === "game" && event.code === "KeyV" && !event.repeat) {
+  if (scene === "game" && isDeveloperModeEnabled() && event.code === "KeyV" && !event.repeat) {
     jumpToNextMissionPhase();
   }
 
-  if (scene === "game" && event.code === "KeyC" && !event.repeat) {
+  if (scene === "game" && isDeveloperModeEnabled() && event.code === "KeyC" && !event.repeat) {
     jumpToPreviousMissionPhase();
   }
 
-  if (scene === "game" && event.code === "KeyZ" && !event.repeat) {
+  if (scene === "game" && isDeveloperModeEnabled() && event.code === "KeyZ" && !event.repeat) {
     isPlayerInvulnerable = !isPlayerInvulnerable;
 
     if (isPlayerInvulnerable) {
@@ -4134,15 +4231,15 @@ window.addEventListener("keydown", (event) => {
     }
   }
 
-  if (scene === "game" && event.code === "KeyB" && !event.repeat) {
+  if (scene === "game" && isDeveloperModeEnabled() && event.code === "KeyB" && !event.repeat) {
     cycleGameplayDebugOverlayMode();
   }
 
-  if (!event.repeat && event.code === "KeyQ") {
+  if (scene === "game" && isDeveloperModeEnabled() && !event.repeat && event.code === "KeyQ") {
     adjustTimeScale(0.5);
   }
 
-  if (!event.repeat && event.code === "KeyE") {
+  if (scene === "game" && isDeveloperModeEnabled() && !event.repeat && event.code === "KeyE") {
     adjustTimeScale(2);
   }
 
@@ -4186,6 +4283,12 @@ function update() {
 
     if (player.hp > 0 && player.hp <= 2) {
       runStats.criticalHpFrames++;
+    }
+
+    if (missionTimer === bossNearbyWarningStartTick) {
+      bossNearbyWarningTimer = bossNearbyWarningDuration;
+    } else if (bossNearbyWarningTimer > 0) {
+      bossNearbyWarningTimer--;
     }
 
     if (missionTimer >= 120 * 60 && !boss.active) {
@@ -4315,6 +4418,16 @@ function movePlayer() {
     player.x += currentSpeed;
     horizontalInput++;
   }
+
+  if (Math.abs(mobileInputState.moveX) > 0.001 || Math.abs(mobileInputState.moveY) > 0.001) {
+    player.x += mobileInputState.moveX * currentSpeed;
+    player.y += mobileInputState.moveY * currentSpeed;
+    horizontalInput += mobileInputState.moveX;
+    verticalInput += mobileInputState.moveY;
+  }
+
+  horizontalInput = clamp(horizontalInput, -1, 1);
+  verticalInput = clamp(verticalInput, -1, 1);
 
   const targetTilt = horizontalInput * playerJetRollTarget;
   const targetPitch = verticalInput * playerVerticalBankMax;
@@ -7735,7 +7848,7 @@ function checkEnemyBulletPlayerCollisions() {
       } else {
         const damage = bullet.damage || 1;
         enemyBullets.splice(i, 1);
-        const reason = bullet.bossSpreadBurst ? "Р Р°СЃСЃРµСЏРЅРЅС‹Р№ РІС‹СЃС‚СЂРµР» Р‘РѕСЃСЃР°" : bullet.zigzagVolleySourceEnemy ? "Р’С‹СЃС‚СЂРµР» Р—РёРіР·Р°РіР°" : "РЎРЅР°СЂСЏРґ РІСЂР°РіР°";
+        const reason = bullet.bossSpreadBurst ? "Рассеянный выстрел босса" : bullet.zigzagVolleySourceEnemy ? "Выстрел зигзага" : "Снаряд врага";
         damagePlayer(damage, reason);
       }
     }
@@ -8884,6 +8997,7 @@ function resetBossDeathSequence() {
 function restartGame() {
   clearInputState();
   resetRunStats();
+  isDeveloperRun = isDeveloperModeEnabled();
   finalRunResult = null;
   playerWebOverlay.active = false;
   playerWebOverlay.timer = 0;
@@ -8931,9 +9045,11 @@ function restartGame() {
   shootCooldown = 0;
   score = 0;
   missionTimer = 0;
+  bossNearbyWarningTimer = 0;
   gameUpdateAccumulator = 0;
   isPaused = false;
   isPlayerInvulnerable = false;
+  displayedHudHp = player.hp;
   resultFadeTimer = 0;
   gameStartFadeTimer = gameStartFadeDuration;
   boss.active = false;
@@ -10571,16 +10687,140 @@ function drawMuzzleFlashes() {
   }
 }
 
-function drawPlayerHp() {
-  for (let i = 0; i < 5; i++) {
-    if (i < player.hp) {
-      ctx.fillStyle = "#00ff66";
-    } else {
-      ctx.fillStyle = "#333333";
-    }
+function getGameplayHudLayout() {
+  const hudWidth = clamp(canvas.width * gameplayHudSpriteConfig.widthFactor, gameplayHudSpriteConfig.minWidth, gameplayHudSpriteConfig.maxWidth);
+  const hudHeight = Math.round(hudWidth * (gameplayHudSpriteConfig.crop.sh / gameplayHudSpriteConfig.crop.sw));
+  const scale = hudWidth / gameplayHudSpriteConfig.crop.sw;
 
-    ctx.fillRect(20 + i * 24, 55, 18, 18);
+  function scaleRect(rect) {
+    return {
+      x: Math.round(gameplayHudSpriteConfig.anchorX + rect.x * scale),
+      y: Math.round(gameplayHudSpriteConfig.anchorY + rect.y * scale),
+      width: Math.round(rect.width * scale),
+      height: Math.round(rect.height * scale)
+    };
   }
+
+  return {
+    x: gameplayHudSpriteConfig.anchorX,
+    y: gameplayHudSpriteConfig.anchorY,
+    width: Math.round(hudWidth),
+    height: hudHeight,
+    scale,
+    fontSize: Math.max(17, Math.round(gameplayHudSpriteConfig.textBaseFontSize * scale)),
+    areas: {
+      durabilityLabel: scaleRect(gameplayHudSpriteConfig.areas.durabilityLabel),
+      hpBarFill: scaleRect(gameplayHudSpriteConfig.areas.hpBarFill),
+      score: scaleRect(gameplayHudSpriteConfig.areas.score),
+      time: scaleRect(gameplayHudSpriteConfig.areas.time)
+    }
+  };
+}
+
+window.__getGameplayHudMetrics = function getGameplayHudMetrics() {
+  const layout = getGameplayHudLayout();
+  return {
+    canvasWidth: canvas.width,
+    canvasHeight: canvas.height,
+    hud: layout
+  };
+};
+
+function drawGameplayHud(layout) {
+  const hudImage = spriteSheets.hud;
+  const crop = gameplayHudSpriteConfig.crop;
+
+  if (hudImage && hudImage.loaded) {
+    ctx.drawImage(
+      hudImage,
+      crop.sx,
+      crop.sy,
+      crop.sw,
+      crop.sh,
+      layout.x,
+      layout.y,
+      layout.width,
+      layout.height
+    );
+  }
+
+  displayedHudHp += (player.hp - displayedHudHp) * 0.18;
+  if (Math.abs(player.hp - displayedHudHp) < 0.002) {
+    displayedHudHp = player.hp;
+  }
+
+  const hpRatio = clamp(displayedHudHp / 5, 0, 1);
+  const hpBarRect = layout.areas.hpBarFill;
+  const hpFillWidth = hpBarRect.width * hpRatio;
+
+  ctx.save();
+  const barRadius = Math.max(3, Math.round(hpBarRect.height * 0.28));
+  ctx.fillStyle = "rgba(0, 0, 0, 0.42)";
+  ctx.beginPath();
+  ctx.roundRect(hpBarRect.x, hpBarRect.y, hpBarRect.width, hpBarRect.height, barRadius);
+  ctx.fill();
+
+  if (hpFillWidth > 0) {
+    const hpGradient = ctx.createLinearGradient(hpBarRect.x, hpBarRect.y, hpBarRect.x + hpBarRect.width, hpBarRect.y);
+    hpGradient.addColorStop(0, "#7affaa");
+    hpGradient.addColorStop(0.45, "#21e36b");
+    hpGradient.addColorStop(1, "#05943b");
+    ctx.fillStyle = hpGradient;
+    ctx.beginPath();
+    ctx.roundRect(hpBarRect.x, hpBarRect.y, hpFillWidth, hpBarRect.height, barRadius);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.24)";
+    ctx.beginPath();
+    ctx.roundRect(
+      hpBarRect.x,
+      hpBarRect.y,
+      hpFillWidth,
+      Math.max(3, Math.round(hpBarRect.height * 0.28)),
+      Math.max(2, Math.round(barRadius * 0.8))
+    );
+    ctx.fill();
+
+    ctx.shadowColor = "rgba(54, 255, 136, 0.38)";
+    ctx.shadowBlur = Math.max(8, Math.round(hpBarRect.height * 0.9));
+    ctx.strokeStyle = "rgba(130, 255, 185, 0.42)";
+    ctx.lineWidth = Math.max(1, Math.round(hpBarRect.height * 0.08));
+    ctx.beginPath();
+    ctx.roundRect(
+      hpBarRect.x + ctx.lineWidth * 0.5,
+      hpBarRect.y + ctx.lineWidth * 0.5,
+      Math.max(0, hpFillWidth - ctx.lineWidth),
+      Math.max(0, hpBarRect.height - ctx.lineWidth),
+      Math.max(2, barRadius - ctx.lineWidth)
+    );
+    ctx.stroke();
+  }
+
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#f4f4f4";
+  ctx.shadowColor = "rgba(0, 0, 0, 0.78)";
+  ctx.shadowBlur = Math.max(4, Math.round(layout.scale * 10));
+  ctx.shadowOffsetY = Math.max(1, Math.round(layout.scale * 2));
+  ctx.font = layout.fontSize + 'px "BoldPixels"';
+  ctx.textAlign = "left";
+  ctx.fillText(
+    "ПРОЧНОСТЬ",
+    layout.areas.durabilityLabel.x + Math.round(6 * layout.scale),
+    layout.areas.durabilityLabel.y + layout.areas.durabilityLabel.height / 2
+  );
+
+  ctx.textAlign = "center";
+  ctx.fillText(
+    "ОЧКИ: " + score,
+    layout.areas.score.x + layout.areas.score.width / 2,
+    layout.areas.score.y + layout.areas.score.height / 2
+  );
+  ctx.fillText(
+    "ВРЕМЯ: " + formatMissionTime(),
+    layout.areas.time.x + layout.areas.time.width / 2,
+    layout.areas.time.y + layout.areas.time.height / 2
+  );
+  ctx.restore();
 }
 
 function getBossLegPartKey(leg) {
@@ -11640,7 +11880,11 @@ function drawGameplayDebugOverlay() {
   ctx.restore();
 }
 
-function drawMissionPhaseInfo() {
+function drawMissionPhaseInfo(hudLayout = null) {
+  if (!isDeveloperModeEnabled()) {
+    return 0;
+  }
+
   const missionSeconds = Math.floor(missionTimer / 60);
   let phaseText = "PHASE: BASIC";
 
@@ -11654,40 +11898,46 @@ function drawMissionPhaseInfo() {
     phaseText = "PHASE: BOSS";
   }
 
+  const baseX = hudLayout ? hudLayout.x : 20;
+  const baseY = hudLayout ? hudLayout.y + hudLayout.height + Math.round(28 + hudLayout.scale * 6) : 155;
+  const mainFontSize = hudLayout ? Math.max(18, Math.round(hudLayout.fontSize * 0.9)) : 23;
+  const subFontSize = hudLayout ? Math.max(14, Math.round(hudLayout.fontSize * 0.6)) : 15;
+
   ctx.fillStyle = "white";
-  ctx.font = "18px Arial";
-  ctx.fillText(phaseText, 20, 155);
+  ctx.font = mainFontSize + 'px "BoldPixels"';
+  ctx.fillText(phaseText, baseX, baseY);
 
   ctx.fillStyle = "#777";
-  ctx.font = "12px Arial";
+  ctx.font = subFontSize + 'px "BoldPixels"';
 
-  if (showDevUi) {
-    ctx.fillText("DEV: V next / C prev", 20, 180);
+  if (isDeveloperModeEnabled()) {
+    ctx.fillText("DEV: V next / C prev", baseX, baseY + Math.round(mainFontSize * 1.05));
   }
 
-  ctx.fillStyle = "white";
-  ctx.font = "18px Arial";
+  return Math.round(mainFontSize * 2.1);
+}
 
-  if (missionSeconds >= 120 && !boss.active) {
-    ctx.textAlign = "center";
-    ctx.font = "32px Arial";
-    ctx.fillText("BOSS INCOMING", canvas.width / 2, 120);
-
-    ctx.textAlign = "left";
-    ctx.font = "18px Arial";
+function drawBossNearbyWarning() {
+  if (bossNearbyWarningTimer <= 0 || boss.active) {
+    return;
   }
+
+  const blinkWhite = Math.floor(bossNearbyWarningTimer / 10) % 2 === 0;
+  const fontSize = Math.max(82, Math.round(canvas.width * 0.07));
+  const warningY = Math.max(190, Math.round(canvas.height * 0.29));
+
+  ctx.save();
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = fontSize + 'px "BoldPixels"';
+  ctx.fillStyle = blinkWhite ? "#ffffff" : "#ff3b30";
+  ctx.shadowColor = blinkWhite ? "rgba(255, 255, 255, 0.25)" : "rgba(255, 72, 54, 0.42)";
+  ctx.shadowBlur = Math.max(12, Math.round(fontSize * 0.28));
+  ctx.fillText("БОСС РЯДОМ", canvas.width / 2, warningY);
+  ctx.restore();
 }
 
 function drawPauseOverlay() {
-  ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.fillStyle = "white";
-  ctx.textAlign = "center";
-  ctx.font = "42px Arial";
-  ctx.fillText("PAUSED", canvas.width / 2, canvas.height / 2);
-
-  ctx.font = "18px Arial";
 }
 
 function drawGameStartFadeOverlay() {
@@ -11821,47 +12071,43 @@ function drawGame() {
 
   if (!techMode) {
     drawBossHpBar();
-
+    const hudLayout = getGameplayHudLayout();
+    drawGameplayHud(hudLayout);
+    let statusY = hudLayout.y + hudLayout.height + Math.round(28 + hudLayout.scale * 6);
+    statusY += drawMissionPhaseInfo(hudLayout);
     ctx.fillStyle = "white";
-    ctx.font = "18px Arial";
     ctx.textAlign = "left";
+    ctx.font = '18px "BoldPixels"';
 
-    ctx.fillText("HP: " + Math.max(0, player.hp).toFixed(1), 20, 40);
-    ctx.fillText("Score: " + score, 20, 95);
-    ctx.fillText("Time: " + formatMissionTime(), 20, 125);
-    drawMissionPhaseInfo();
-
-    ctx.textAlign = "right";
-    ctx.font = "14px Arial";
-    ctx.fillText("Speed: " + formatTimeScale() + "x", canvas.width - 20, 32);
-    ctx.textAlign = "left";
-    ctx.font = "18px Arial";
-
-    if (player.slowTimer > 0) {
-      ctx.fillText("SLOWED", 20, 205);
+    if (isDeveloperModeEnabled()) {
+      ctx.textAlign = "right";
+      ctx.font = '18px "BoldPixels"';
+      ctx.fillText("SPEED: " + formatTimeScale() + "x", canvas.width - 20, 36);
+      ctx.textAlign = "left";
+      ctx.font = '18px "BoldPixels"';
     }
 
-    if (isPlayerInvulnerable && showDevUi) {
+    if (player.slowTimer > 0) {
+      ctx.fillText("SLOWED", hudLayout.x, statusY);
+      statusY += 24;
+    }
+
+    if (isPlayerInvulnerable && isDeveloperModeEnabled()) {
       ctx.fillStyle = "#ffff66";
-      ctx.font = "14px Arial";
-      ctx.fillText("DEV GODMODE", 20, 225);
+      ctx.font = '18px "BoldPixels"';
+      ctx.fillText("DEV GODMODE", hudLayout.x, statusY);
       ctx.fillStyle = "white";
-      ctx.font = "18px Arial";
+      ctx.font = '18px "BoldPixels"';
     }
 
     drawBossDeathOverlay();
-
-    drawPlayerHp();
 
     drawPlayerSpeedEffects();
     drawPlayerShip();
     drawMuzzleFlashes();
 
+    drawBossNearbyWarning();
     drawBossIntroWarning();
-
-    if (isPaused) {
-      drawPauseOverlay();
-    }
 
     drawGameStartFadeOverlay();
   }

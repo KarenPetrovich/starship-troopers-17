@@ -3,35 +3,6 @@ Project Overview
 
 Small HTML5 Canvas arcade shooter prototype.
 
-Current main-menu UI work is an experimental branch; treat logo/button choices as provisional until PC and mobile verification passes.
-
-## Session Close 2026-06-17
-
-### UI / Navigation
-
-- The non-game UI still uses the shared `panel.png` shell for the terminal-style screens.
-- Footer unification, results / detailed results stabilization, and viewport height limiting for the panel shell were successful outcomes from the UI passes.
-- The unified click-state path was only partially translated in code, and the real interface did not confirm the expected red BoldPixels click phase and delay for every activation path.
-- The click-state issue remains open and must be treated as next session task number 1.
-- The next session should begin with button activation consistency before any more UI composition work.
-
-### What Worked
-
-- footer-system unification across the terminal screens
-- panel sizing constrained by viewport width and height
-- results and detailed results reaching a working state
-
-### What Did Not Work
-
-- too many iterations spent on footer adjustments
-- too much time lost to pixel-shifting the `НАЗАД` button
-- premature approval of the click-state transition path without real-interface confirmation
-
-### Cleanup
-
-- temporary screenshots, `.codex_*` comparison files, debug PNGs, and viewport/test captures should be archived to `C:\Future\CyberSpider_Archive`
-- keep active project files limited to code, used assets, and the current docs
-
 ## Repository Layout
 
 The current project structure is authoritative:
@@ -83,7 +54,7 @@ Accepted UI direction:
 Remaining UI issues for the next session:
 - `BoldPixels` needs a readability pass, especially on controls and results.
 - `УПРАВЛЕНИЕ` needs a better composition pass.
-- `РЕЗУЛЬТАТЫ` needs larger text and a better use of the available panel space.
+- `РЕЗУЛЬТАТЫ` needs larger text and better use of the available panel space.
 
 Cleanup rule:
 - temporary UI screenshots, experiments, and scratch exports should be moved to `C:\Future\CyberSpider_Archive` after they are no longer needed
@@ -1642,7 +1613,6 @@ After every completed session:
 - Canvas stays for gameplay, HUD stub, battle warnings, and in-game overlays.
 - HTML/CSS is the main route for main menu, settings, titles, results, and other non-game screens.
 - The UI foundation is a thematic drawn background plus HTML/CSS interface plus game typography plus custom button shapes.
-- The current PC main-menu baseline is `assets/ui/Main3.png` with desktop variant `B`.
 - `Space_Game_GUI_PNG` is not the foundation; it remains only a source of individual components if needed.
 - `Start_BTN`, `Table`, and menu assembly around the asset pack were unsuccessful experiments.
 - `UI_KIT_V2` is an archived course, not an active direction.
@@ -1664,7 +1634,7 @@ Cleanup review:
 - today's UI experiments were rolled back and the old canvas-first shell was restored.
 - the next check is a live playtest of the new score / rank curve, not another UI experiment.
 
-## UI Session Close 2026-06-14
+## Session Close 2026-06-14
 
 - The main project gameplay branch was restored from `C:\Future\CyberSpider_Archive\game.js.20260613_133518.bak`.
 - The 13.06 UI rollback is the confirmed reason the main project briefly fell back to the older canvas-shell.
@@ -1693,28 +1663,3 @@ Cleanup review:
   - save the files that will be modified separately
   - record the archive path used for the backup
   - include the reverse-restore procedure in the report
-
-## Session Close 2026-06-14
-
-- `Main3.png` remains the active menu background.
-- The menu still uses the standard `background + cover` scheme.
-- The menu stays on the right.
-- The real browser viewport mattered more than the idealized screenshot viewport.
-- The key real-session finding was `1920x812`, not `1920x1080`.
-- Temporary diagnostics were removed from the active UI: `BUILD TEST 001`, viewport readouts, and the `PILOT TERMINAL / SECTOR 17 / STATUS: READY` block.
-- The final menu work in this session stayed limited to container sizing around the existing buttons.
-
-## Session Mistakes 2026-06-14
-
-- Too much time was spent circling the menu background problem with extra layers, blur, menu-art variants, and other cosmetic branches.
-- `BUILD TEST 001` and viewport diagnostics were treated as removed before they were actually gone.
-- The aircraft being clipped out of frame should have been accepted earlier as a real viewport issue.
-- Too many iterations were spent on container variants instead of identifying the root cause first.
-- Real browser verification was not used early enough.
-
-## UI Lesson 2026-06-14
-
-- Start UI work by checking the user's real viewport first.
-- Only then decide on the fix.
-- Avoid A/B/C style series unless there is a clear decision to make.
-- Avoid cosmetic micro-iteration loops when the real problem is viewport composition.
