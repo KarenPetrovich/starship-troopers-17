@@ -244,6 +244,9 @@ let displayedHudHp = 5;
 let bossNearbyWarningTimer = 0;
 const bossNearbyWarningStartTick = 90 * 60;
 const bossNearbyWarningDuration = 180;
+const bossNearbyWarningText = "\u0411\u041E\u0421\u0421 \u0420\u042F\u0414\u041E\u041C";
+const bossIntroWarningTitleText = "\u0412\u041D\u0418\u041C\u0410\u041D\u0418\u0415";
+const bossIntroWarningBodyText = "\u041E\u0411\u041D\u0410\u0420\u0423\u0416\u0415\u041D \u041A\u0418\u0411\u0415\u0420\u041F\u0410\u0423\u041A";
 let bossAnimationTimer = 0;
 let playerVisualTilt = 0;
 let playerExhaustTilt = 0;
@@ -11933,7 +11936,7 @@ function drawBossNearbyWarning() {
   ctx.fillStyle = blinkWhite ? "#ffffff" : "#ff3b30";
   ctx.shadowColor = blinkWhite ? "rgba(255, 255, 255, 0.25)" : "rgba(255, 72, 54, 0.42)";
   ctx.shadowBlur = Math.max(12, Math.round(fontSize * 0.28));
-  ctx.fillText("БОСС РЯДОМ", canvas.width / 2, warningY);
+  ctx.fillText(bossNearbyWarningText, canvas.width / 2, warningY);
   ctx.restore();
 }
 
@@ -12026,9 +12029,9 @@ function drawBossIntroWarning() {
   ctx.textAlign = "center";
   ctx.fillStyle = blink ? "#ff3333" : "#ffffff";
   ctx.font = "44px Arial";
-  ctx.fillText("Р’РќРРњРђРќРР•", canvas.width / 2, canvas.height / 2 - 55);
+  ctx.fillText(bossIntroWarningTitleText, canvas.width / 2, canvas.height / 2 - 55);
   ctx.font = "30px Arial";
-  ctx.fillText("РћР‘РќРђР РЈР–Р•Рќ РљРР‘Р•Р РџРђРЈРљ", canvas.width / 2, canvas.height / 2);
+  ctx.fillText(bossIntroWarningBodyText, canvas.width / 2, canvas.height / 2);
   ctx.restore();
 }
 
