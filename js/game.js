@@ -29,6 +29,7 @@ const mobileInputState = {
         canvas.style.top = "0px";
       }
       document.body.classList.toggle("menu-screen", isMenuScene);
+      document.body.classList.toggle("game-screen", !isMenuScene);
     }
 
     layoutCanvas();
@@ -10694,7 +10695,9 @@ function drawMuzzleFlashes() {
 }
 
 function getGameplayHudLayout() {
-  const hudWidth = clamp(canvas.width * gameplayHudSpriteConfig.widthFactor, gameplayHudSpriteConfig.minWidth, gameplayHudSpriteConfig.maxWidth);
+  const maxHudWidth = Math.max(0, canvas.width - gameplayHudSpriteConfig.anchorX * 2);
+  const minHudWidth = Math.min(gameplayHudSpriteConfig.minWidth, maxHudWidth);
+  const hudWidth = clamp(canvas.width * gameplayHudSpriteConfig.widthFactor, minHudWidth, Math.min(gameplayHudSpriteConfig.maxWidth, maxHudWidth));
   const hudHeight = Math.round(hudWidth * (gameplayHudSpriteConfig.crop.sh / gameplayHudSpriteConfig.crop.sw));
   const scale = hudWidth / gameplayHudSpriteConfig.crop.sw;
 
@@ -12075,7 +12078,9 @@ function drawGame() {
   drawGameplayDebugOverlay();
   ctx.restore();
 
-  if (!techMode) {
+  const resultOverlayActive = window.__resultOverlayActive === true;
+
+  if (!techMode && !resultOverlayActive) {
     drawBossHpBar();
     const hudLayout = getGameplayHudLayout();
     drawGameplayHud(hudLayout);
