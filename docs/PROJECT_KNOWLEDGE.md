@@ -59,6 +59,7 @@ Use these rules by default for all future tasks in this project.
 - change only the requested file or segment
 - do not read the whole project unless needed
 - do not touch other system parts
+- mobile iteration stays local until explicit release approval; validate through localhost/LAN on a real phone before any production push
 
 4. One task equals one verification:
 - verify only the requested criterion
@@ -77,6 +78,36 @@ Use these rules by default for all future tasks in this project.
 7. Do not touch stable areas:
 - segmentation, ownership, and PNG assets are treated as final
 - do not return to already solved tasks
+
+## PC / Mobile Architecture Guard
+
+These rules are mandatory for all future gameplay, UI, and mobile work.
+
+1. PC is the source of truth:
+- the PC version is the reference build
+- a change is acceptable only if PC behavior stays unchanged
+
+2. Mobile is overlay only:
+- mobile may add touch input, joystick input, UI overlay, and CSS/layout adaptation
+- mobile must not change the game loop, render pipeline, gameplay logic, internal canvas sizing, or gameplay scaling
+
+3. Hard isolation:
+- mobile code must not read or mutate render-core globals in order to change gameplay presentation
+- shared variables that affect gameplay scale, camera scale, gameplay viewport, or internal canvas size are forbidden
+
+4. Layer separation:
+- rendering system belongs to the PC gameplay core
+- the mobile layer is visual/input overlay only
+- CSS may adapt outer presentation, but it must not rewrite internal canvas logic
+
+5. Conflict priority:
+- if PC behavior and mobile adaptation conflict, PC behavior wins
+- mobile always adapts to PC, never the reverse
+
+Success criteria:
+- PC behavior is identical before and after mobile work
+- mobile changes do not affect gameplay core or rendering core
+- disabling the mobile layer causes no change in PC behavior
 
 ## Core Areas Of Knowledge
 
@@ -105,6 +136,9 @@ Use these rules by default for all future tasks in this project.
 - decides how the game is drawn
 - handles draw order, layering, and canvas behavior
 - supports parallax, overlays, and sprite presentation
+- hard project rule: device logic must never modify gameplay core rendering
+- forbidden device-dependent changes: player size, enemy size, camera scale, gameplay viewport, canvas internal resolution, and any gameplay draw pipeline scaling
+- allowed mobile-only changes: HUD layout, joystick, buttons, menu/results/titles positioning, and canvas CSS presentation only
 - current village background audit: `drawVillageScrollBackground()` uses a 1:1 draw of `assets/background/village_level_main.png` with `ctx.imageSmoothingEnabled = false`, integer `x` positioning, and `Math.round()` on the vertical offset, so the background itself is not being scaled or transformed inside the draw call
 - the active browser viewport for the current session measured `366x558` canvas buffer/client size with `window.devicePixelRatio = 1.5`; there is no CSS width/height override on the canvas, so there is no extra HTML/CSS scaling beyond the browser's normal device-pixel presentation
 - because the source image is `741px` wide, only `49.39%` of its width is visible at once in that viewport; the remaining side area is real offscreen content rather than a render bug

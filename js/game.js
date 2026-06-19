@@ -10,7 +10,29 @@ const mobileInputState = {
   fireActive: false
 };
 
+function isMobileGameplayViewportActive() {
+  return isTouchDevice && Math.min(window.innerWidth, window.innerHeight) <= 900;
+}
+
+function getMobileGameplayRenderScale() {
+  if (!isMobileGameplayViewportActive()) {
+    return 1;
+  }
+
+  const targetWorldWidth = 640;
+  const rawScale = targetWorldWidth / Math.max(1, window.innerWidth);
+  return Math.max(1, Math.min(1.8, rawScale));
+}
+
 function getGameplayRenderViewport() {
+  if (isMobileGameplayViewportActive()) {
+    const renderScale = getMobileGameplayRenderScale();
+    return {
+      width: Math.max(1, Math.floor(window.innerWidth * renderScale)),
+      height: Math.max(1, Math.floor(window.innerHeight * renderScale))
+    };
+  }
+
   return {
     width: Math.max(1, Math.floor(window.innerWidth * 0.585)),
     height: window.innerHeight
@@ -19,6 +41,15 @@ function getGameplayRenderViewport() {
 
 function getCanvasPresentationViewport(isMenuScene) {
   if (isMenuScene) {
+    return {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      left: 0,
+      top: 0
+    };
+  }
+
+  if (isMobileGameplayViewportActive()) {
     return {
       width: window.innerWidth,
       height: window.innerHeight,
@@ -125,6 +156,19 @@ window.__abandonRunFromPause = function abandonRunFromPause() {
   window.__returnToMenu();
 };
 let finalRunResult = null;
+const perfDiagnostics = {
+  active: false,
+  label: "",
+  startedAt: 0,
+  totalFrameTime: 0,
+  maxFrameTime: 0,
+  totalUpdateTime: 0,
+  totalDrawTime: 0,
+  frameCount: 0,
+  updateCount: 0,
+  drawCount: 0,
+  sections: Object.create(null)
+};
 const enemyDisplayNames = {
   normal: "Таран",
   web: "Паучок",
@@ -217,6 +261,7 @@ const bossCoreLaser = {
 };
 const tankMissileAttackIntervalMultiplier = 5 / 6;
 const webShootIntervalMultiplier = 1 / 0.85;
+const mobileWebShootIntervalMultiplier = 1.25;
 const bossMissileAttackIntervalMultiplier = 0.5;
 const bossRageAttackIntervalPercents = [100, 110, 125, 145, 170, 200];
 const particles = [];
@@ -2241,17 +2286,33 @@ function drawProjectileSprite(entity, spriteConfig) {
     );
     ctx.restore();
   }
-  ctx.drawImage(
-    spriteConfig.image,
-    frame.sx,
-    frame.sy,
-    spriteConfig.sw,
-    spriteConfig.sh,
-    -drawWidth / 2,
-    -drawHeight / 2,
-    drawWidth,
-    drawHeight
-  );
+  if (spriteConfig.webClump) {
+    measurePerfSection("draw.webProjectile.baseSprite", () => {
+      ctx.drawImage(
+        spriteConfig.image,
+        frame.sx,
+        frame.sy,
+        spriteConfig.sw,
+        spriteConfig.sh,
+        -drawWidth / 2,
+        -drawHeight / 2,
+        drawWidth,
+        drawHeight
+      );
+    });
+  } else {
+    ctx.drawImage(
+      spriteConfig.image,
+      frame.sx,
+      frame.sy,
+      spriteConfig.sw,
+      spriteConfig.sh,
+      -drawWidth / 2,
+      -drawHeight / 2,
+      drawWidth,
+      drawHeight
+    );
+  }
   if (spriteConfig.zigzagSlug) {
     drawZigzagProjectileAccent(spriteConfig, drawWidth, drawHeight);
   }
@@ -2315,6 +2376,7 @@ function getZigzagVolleySpriteConfig(variant) {
 }
 
 function drawZigzagVolleyProjectile(entity) {
+  const sectionStartTime = perfDiagnostics.active ? performance.now() : 0;
   const spriteConfig = getZigzagVolleySpriteConfig(entity.zigzagVolleyVariant);
 
   if (!spriteConfig || !spriteConfig.image.loaded) {
@@ -2359,6 +2421,10 @@ function drawZigzagVolleyProjectile(entity) {
     drawHeight
   );
   ctx.restore();
+
+  if (perfDiagnostics.active) {
+    recordPerfSection("draw.zigzagVolleyProjectile", performance.now() - sectionStartTime);
+  }
 
   return true;
 }
@@ -2440,7 +2506,142 @@ function drawBossWebProjectileAura(drawWidth, drawHeight, entity) {
   ctx.restore();
 }
 
+const mobileWebProjectileClumpCache = new Map();
+
+function buildMobileWebProjectileClumpCacheKey(spriteConfig, bossWeb, showSpark) {
+  return [
+    bossWeb ? "boss" : "web",
+    showSpark ? "spark" : "idle",
+    spriteConfig.drawWidth || 0,
+    spriteConfig.drawHeight || 0,
+    spriteConfig.webThreadScale || 1,
+    spriteConfig.webThreadColor || "",
+    spriteConfig.webCoreColor || "",
+    spriteConfig.webOutlineColor || "",
+    spriteConfig.webGlowColor || ""
+  ].join("|");
+}
+
+function createMobileWebProjectileClumpCache(spriteConfig, bossWeb, showSpark) {
+  const logicalWidth = spriteConfig.drawWidth || 22;
+  const logicalHeight = spriteConfig.drawHeight || 22;
+  const paddingX = Math.max(6, Math.round(logicalWidth * 0.45));
+  const paddingY = Math.max(6, Math.round(logicalHeight * 0.45));
+  const cacheCanvas = document.createElement("canvas");
+  const cacheCtx = cacheCanvas.getContext("2d");
+  const totalWidth = logicalWidth + paddingX * 2;
+  const totalHeight = logicalHeight + paddingY * 2;
+  const threadScale = spriteConfig.webThreadScale || 1;
+  const halfW = logicalWidth / 2;
+  const halfH = logicalHeight / 2;
+  const outlineColor = bossWeb ? "rgba(74, 255, 118, 0.9)" : (spriteConfig.webOutlineColor || "#8db3c2");
+  const threadColor = bossWeb ? "rgba(130, 255, 116, 0.98)" : (spriteConfig.webThreadColor || "#f4fbff");
+  const coreColor = bossWeb ? "rgba(240, 255, 240, 0.98)" : (spriteConfig.webCoreColor || "#ffffff");
+  const glowColor = bossWeb ? "rgba(92, 255, 100, 0.08)" : (spriteConfig.webGlowColor || "rgba(220, 245, 255, 0.8)");
+
+  cacheCanvas.width = totalWidth;
+  cacheCanvas.height = totalHeight;
+
+  cacheCtx.save();
+  cacheCtx.translate(totalWidth / 2, totalHeight / 2);
+  cacheCtx.globalCompositeOperation = "lighter";
+  cacheCtx.globalAlpha = bossWeb ? 0.16 : 0.32;
+  cacheCtx.shadowColor = glowColor;
+  cacheCtx.shadowBlur = Math.max(1, Math.round(logicalWidth * (bossWeb ? 0.025 : 0.18)));
+  cacheCtx.strokeStyle = threadColor;
+  cacheCtx.lineWidth = bossWeb ? 1.4 : 2;
+  cacheCtx.beginPath();
+  cacheCtx.moveTo(-halfW * 0.36 * threadScale, -halfH * 0.12);
+  cacheCtx.lineTo(halfW * 0.32 * threadScale, halfH * 0.08);
+  cacheCtx.moveTo(-halfW * 0.04, -halfH * 0.34 * threadScale);
+  cacheCtx.lineTo(halfW * 0.05, halfH * 0.3 * threadScale);
+  cacheCtx.moveTo(-halfW * 0.24 * threadScale, halfH * 0.18);
+  cacheCtx.lineTo(halfW * 0.16 * threadScale, -halfH * 0.16);
+  cacheCtx.stroke();
+
+  if (bossWeb) {
+    cacheCtx.globalAlpha = 0.58;
+    cacheCtx.strokeStyle = "rgba(83, 255, 40, 0.98)";
+    cacheCtx.lineWidth = 1.35;
+    cacheCtx.beginPath();
+    cacheCtx.moveTo(-halfW * 0.2, -halfH * 0.02);
+    cacheCtx.lineTo(-halfW * 0.03, -halfH * 0.26);
+    cacheCtx.lineTo(halfW * 0.12, -halfH * 0.03);
+    cacheCtx.moveTo(-halfW * 0.12, halfH * 0.16);
+    cacheCtx.lineTo(0, halfH * 0.03);
+    cacheCtx.lineTo(halfW * 0.1, halfH * 0.14);
+    cacheCtx.stroke();
+  }
+
+  cacheCtx.globalAlpha = bossWeb ? 0.98 : 0.85;
+  cacheCtx.fillStyle = coreColor;
+  cacheCtx.fillRect(-1, -1, 2, 2);
+  cacheCtx.fillRect(Math.round(-halfW * 0.16), Math.round(halfH * 0.05), 2, 2);
+  cacheCtx.fillRect(Math.round(halfW * 0.1), Math.round(-halfH * 0.16), 2, 2);
+
+  cacheCtx.globalAlpha = bossWeb ? 0.04 : 0.18;
+  cacheCtx.fillStyle = glowColor;
+  cacheCtx.fillRect(Math.round(-halfW * 0.08), Math.round(-halfH * 0.05), Math.max(2, Math.round(logicalWidth * 0.09)), Math.max(2, Math.round(logicalHeight * 0.04)));
+
+  cacheCtx.globalCompositeOperation = "source-over";
+  cacheCtx.globalAlpha = 0.92;
+  cacheCtx.fillStyle = outlineColor;
+  cacheCtx.fillRect(Math.round(-halfW * 0.34), Math.round(-halfH * 0.03), 2, 2);
+  cacheCtx.fillRect(Math.round(halfW * 0.3), Math.round(halfH * 0.1), 2, 2);
+  cacheCtx.fillRect(Math.round(-halfW * 0.02), Math.round(halfH * 0.3), 2, 2);
+
+  if (bossWeb) {
+    cacheCtx.globalCompositeOperation = "lighter";
+    cacheCtx.globalAlpha = 0.5;
+    cacheCtx.fillStyle = "rgba(83, 255, 40, 0.98)";
+    cacheCtx.fillRect(Math.round(-halfW * 0.11), Math.round(-halfH * 0.12), 2, 2);
+    cacheCtx.fillRect(Math.round(halfW * 0.03), Math.round(halfH * 0.03), 2, 2);
+    cacheCtx.fillRect(Math.round(-halfW * 0.16), Math.round(halfH * 0.1), 2, 2);
+
+    if (showSpark) {
+      cacheCtx.globalAlpha = 0.96;
+      cacheCtx.fillStyle = "rgba(182, 255, 96, 1)";
+      cacheCtx.fillRect(Math.round(-halfW * 0.1), Math.round(-halfH * 0.03), 3, 3);
+      cacheCtx.fillRect(Math.round(halfW * 0.1), Math.round(halfH * 0.04), 3, 3);
+    }
+  }
+  cacheCtx.restore();
+
+  return {
+    canvas: cacheCanvas,
+    logicalWidth,
+    logicalHeight,
+    totalWidth,
+    totalHeight
+  };
+}
+
+function getMobileWebProjectileClumpCache(spriteConfig, bossWeb, showSpark) {
+  const cacheKey = buildMobileWebProjectileClumpCacheKey(spriteConfig, bossWeb, showSpark);
+  let cacheEntry = mobileWebProjectileClumpCache.get(cacheKey);
+  if (!cacheEntry) {
+    cacheEntry = createMobileWebProjectileClumpCache(spriteConfig, bossWeb, showSpark);
+    mobileWebProjectileClumpCache.set(cacheKey, cacheEntry);
+  }
+  return cacheEntry;
+}
+
+function drawMobileCachedWebProjectileClump(spriteConfig, drawWidth, drawHeight, bossWeb, showSpark) {
+  const cacheEntry = getMobileWebProjectileClumpCache(spriteConfig, bossWeb, showSpark);
+  const drawOffsetX = (cacheEntry.totalWidth - cacheEntry.logicalWidth) / 2;
+  const drawOffsetY = (cacheEntry.totalHeight - cacheEntry.logicalHeight) / 2;
+  const targetWidth = drawWidth * (cacheEntry.totalWidth / cacheEntry.logicalWidth);
+  const targetHeight = drawHeight * (cacheEntry.totalHeight / cacheEntry.logicalHeight);
+  const targetX = -drawWidth / 2 - (drawOffsetX / cacheEntry.logicalWidth) * drawWidth;
+  const targetY = -drawHeight / 2 - (drawOffsetY / cacheEntry.logicalHeight) * drawHeight;
+
+  measurePerfSection("draw.webProjectileClump.alphaFills", () => {
+    ctx.drawImage(cacheEntry.canvas, targetX, targetY, targetWidth, targetHeight);
+  });
+}
+
 function drawWebProjectileClump(spriteConfig, drawWidth, drawHeight, entity = null) {
+  const sectionStartTime = perfDiagnostics.active ? performance.now() : 0;
   const threadScale = spriteConfig.webThreadScale || 1;
   const halfW = drawWidth / 2;
   const halfH = drawHeight / 2;
@@ -2453,69 +2654,90 @@ function drawWebProjectileClump(spriteConfig, drawWidth, drawHeight, entity = nu
   const coreColor = bossWeb ? "rgba(240, 255, 240, 0.98)" : (spriteConfig.webCoreColor || "#ffffff");
   const glowColor = bossWeb ? "rgba(92, 255, 100, 0.08)" : (spriteConfig.webGlowColor || "rgba(220, 245, 255, 0.8)");
 
-  ctx.save();
-  ctx.globalCompositeOperation = "lighter";
-  ctx.globalAlpha = bossWeb ? 0.16 : 0.32;
-  ctx.shadowColor = glowColor;
-  ctx.shadowBlur = Math.max(1, Math.round(drawWidth * (bossWeb ? 0.025 : 0.18)));
-  ctx.strokeStyle = threadColor;
-  ctx.lineWidth = bossWeb ? 1.4 : 2;
-  ctx.beginPath();
-  ctx.moveTo(-halfW * 0.36 * threadScale, -halfH * 0.12);
-  ctx.lineTo(halfW * 0.32 * threadScale, halfH * 0.08);
-  ctx.moveTo(-halfW * 0.04, -halfH * 0.34 * threadScale);
-  ctx.lineTo(halfW * 0.05, halfH * 0.3 * threadScale);
-  ctx.moveTo(-halfW * 0.24 * threadScale, halfH * 0.18);
-  ctx.lineTo(halfW * 0.16 * threadScale, -halfH * 0.16);
-  ctx.stroke();
+  if (isMobileGameplayViewportActive()) {
+    drawMobileCachedWebProjectileClump(spriteConfig, drawWidth, drawHeight, bossWeb, showSpark);
 
-  if (bossWeb) {
-    ctx.globalAlpha = 0.58;
-    ctx.strokeStyle = "rgba(83, 255, 40, 0.98)";
-    ctx.lineWidth = 1.35;
-    ctx.beginPath();
-    ctx.moveTo(-halfW * 0.2, -halfH * 0.02);
-    ctx.lineTo(-halfW * 0.03, -halfH * 0.26);
-    ctx.lineTo(halfW * 0.12, -halfH * 0.03);
-    ctx.moveTo(-halfW * 0.12, halfH * 0.16);
-    ctx.lineTo(0, halfH * 0.03);
-    ctx.lineTo(halfW * 0.1, halfH * 0.14);
-    ctx.stroke();
+    if (perfDiagnostics.active) {
+      recordPerfSection("draw.webProjectileClump", performance.now() - sectionStartTime);
+    }
+    return;
   }
 
-  ctx.globalAlpha = bossWeb ? 0.98 : 0.85;
-  ctx.fillStyle = coreColor;
-  ctx.fillRect(-1, -1, 2, 2);
-  ctx.fillRect(Math.round(-halfW * 0.16), Math.round(halfH * 0.05), 2, 2);
-  ctx.fillRect(Math.round(halfW * 0.1), Math.round(-halfH * 0.16), 2, 2);
-
-  ctx.globalAlpha = bossWeb ? 0.04 : 0.18;
-  ctx.fillStyle = glowColor;
-  ctx.fillRect(Math.round(-halfW * 0.08), Math.round(-halfH * 0.05), Math.max(2, Math.round(drawWidth * 0.09)), Math.max(2, Math.round(drawHeight * 0.04)));
-
-  ctx.globalCompositeOperation = "source-over";
-  ctx.globalAlpha = bossWeb ? 0.92 : 0.92;
-  ctx.fillStyle = outlineColor;
-  ctx.fillRect(Math.round(-halfW * 0.34), Math.round(-halfH * 0.03), 2, 2);
-  ctx.fillRect(Math.round(halfW * 0.3), Math.round(halfH * 0.1), 2, 2);
-  ctx.fillRect(Math.round(-halfW * 0.02), Math.round(halfH * 0.3), 2, 2);
+  ctx.save();
+  measurePerfSection("draw.webProjectileClump.shadowGlowLines", () => {
+    ctx.globalCompositeOperation = "lighter";
+    ctx.globalAlpha = bossWeb ? 0.16 : 0.32;
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = Math.max(1, Math.round(drawWidth * (bossWeb ? 0.025 : 0.18)));
+    ctx.strokeStyle = threadColor;
+    ctx.lineWidth = bossWeb ? 1.4 : 2;
+    ctx.beginPath();
+    ctx.moveTo(-halfW * 0.36 * threadScale, -halfH * 0.12);
+    ctx.lineTo(halfW * 0.32 * threadScale, halfH * 0.08);
+    ctx.moveTo(-halfW * 0.04, -halfH * 0.34 * threadScale);
+    ctx.lineTo(halfW * 0.05, halfH * 0.3 * threadScale);
+    ctx.moveTo(-halfW * 0.24 * threadScale, halfH * 0.18);
+    ctx.lineTo(halfW * 0.16 * threadScale, -halfH * 0.16);
+    ctx.stroke();
+  });
 
   if (bossWeb) {
-    ctx.globalCompositeOperation = "lighter";
-    ctx.globalAlpha = 0.5;
-    ctx.fillStyle = "rgba(83, 255, 40, 0.98)";
-    ctx.fillRect(Math.round(-halfW * 0.11), Math.round(-halfH * 0.12), 2, 2);
-    ctx.fillRect(Math.round(halfW * 0.03), Math.round(halfH * 0.03), 2, 2);
-    ctx.fillRect(Math.round(-halfW * 0.16), Math.round(halfH * 0.1), 2, 2);
+    measurePerfSection("draw.webProjectileClump.bossAccentLines", () => {
+      ctx.globalAlpha = 0.58;
+      ctx.strokeStyle = "rgba(83, 255, 40, 0.98)";
+      ctx.lineWidth = 1.35;
+      ctx.beginPath();
+      ctx.moveTo(-halfW * 0.2, -halfH * 0.02);
+      ctx.lineTo(-halfW * 0.03, -halfH * 0.26);
+      ctx.lineTo(halfW * 0.12, -halfH * 0.03);
+      ctx.moveTo(-halfW * 0.12, halfH * 0.16);
+      ctx.lineTo(0, halfH * 0.03);
+      ctx.lineTo(halfW * 0.1, halfH * 0.14);
+      ctx.stroke();
+    });
+  }
 
-    if (showSpark) {
-      ctx.globalAlpha = 0.96;
-      ctx.fillStyle = "rgba(182, 255, 96, 1)";
-      ctx.fillRect(Math.round(-halfW * 0.1), Math.round(-halfH * 0.03), 3, 3);
-      ctx.fillRect(Math.round(halfW * 0.1), Math.round(halfH * 0.04), 3, 3);
-    }
+  measurePerfSection("draw.webProjectileClump.alphaFills", () => {
+    ctx.globalAlpha = bossWeb ? 0.98 : 0.85;
+    ctx.fillStyle = coreColor;
+    ctx.fillRect(-1, -1, 2, 2);
+    ctx.fillRect(Math.round(-halfW * 0.16), Math.round(halfH * 0.05), 2, 2);
+    ctx.fillRect(Math.round(halfW * 0.1), Math.round(-halfH * 0.16), 2, 2);
+
+    ctx.globalAlpha = bossWeb ? 0.04 : 0.18;
+    ctx.fillStyle = glowColor;
+    ctx.fillRect(Math.round(-halfW * 0.08), Math.round(-halfH * 0.05), Math.max(2, Math.round(drawWidth * 0.09)), Math.max(2, Math.round(drawHeight * 0.04)));
+
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = bossWeb ? 0.92 : 0.92;
+    ctx.fillStyle = outlineColor;
+    ctx.fillRect(Math.round(-halfW * 0.34), Math.round(-halfH * 0.03), 2, 2);
+    ctx.fillRect(Math.round(halfW * 0.3), Math.round(halfH * 0.1), 2, 2);
+    ctx.fillRect(Math.round(-halfW * 0.02), Math.round(halfH * 0.3), 2, 2);
+  });
+
+  if (bossWeb) {
+    measurePerfSection("draw.webProjectileClump.bossSparkFills", () => {
+      ctx.globalCompositeOperation = "lighter";
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = "rgba(83, 255, 40, 0.98)";
+      ctx.fillRect(Math.round(-halfW * 0.11), Math.round(-halfH * 0.12), 2, 2);
+      ctx.fillRect(Math.round(halfW * 0.03), Math.round(halfH * 0.03), 2, 2);
+      ctx.fillRect(Math.round(-halfW * 0.16), Math.round(halfH * 0.1), 2, 2);
+
+      if (showSpark) {
+        ctx.globalAlpha = 0.96;
+        ctx.fillStyle = "rgba(182, 255, 96, 1)";
+        ctx.fillRect(Math.round(-halfW * 0.1), Math.round(-halfH * 0.03), 3, 3);
+        ctx.fillRect(Math.round(halfW * 0.1), Math.round(halfH * 0.04), 3, 3);
+      }
+    });
   }
   ctx.restore();
+
+  if (perfDiagnostics.active) {
+    recordPerfSection("draw.webProjectileClump", performance.now() - sectionStartTime);
+  }
 }
 
 function drawExhaustSprite(spriteConfig, nozzleX, nozzleY, options = {}) {
@@ -4172,6 +4394,666 @@ function adjustTimeScale(multiplier) {
   timeScale = Math.min(8, Math.max(0.25, timeScale * multiplier));
 }
 
+function resetPerfDiagnostics(label = "") {
+  perfDiagnostics.active = false;
+  perfDiagnostics.label = label;
+  perfDiagnostics.startedAt = 0;
+  perfDiagnostics.totalFrameTime = 0;
+  perfDiagnostics.maxFrameTime = 0;
+  perfDiagnostics.totalUpdateTime = 0;
+  perfDiagnostics.totalDrawTime = 0;
+  perfDiagnostics.frameCount = 0;
+  perfDiagnostics.updateCount = 0;
+  perfDiagnostics.drawCount = 0;
+  perfDiagnostics.sections = Object.create(null);
+}
+
+function recordPerfSection(name, duration) {
+  if (!perfDiagnostics.active || !Number.isFinite(duration)) {
+    return;
+  }
+
+  const bucket = perfDiagnostics.sections[name] || {
+    total: 0,
+    max: 0,
+    count: 0
+  };
+  bucket.total += duration;
+  bucket.count++;
+  if (duration > bucket.max) {
+    bucket.max = duration;
+  }
+  perfDiagnostics.sections[name] = bucket;
+}
+
+function measurePerfSection(name, callback) {
+  if (!perfDiagnostics.active) {
+    return callback();
+  }
+
+  const start = performance.now();
+  const result = callback();
+  recordPerfSection(name, performance.now() - start);
+  return result;
+}
+
+function snapshotPerfDiagnostics() {
+  const sections = Object.create(null);
+  const orderedSections = Object.entries(perfDiagnostics.sections)
+    .map(([name, data]) => ({
+      name,
+      avgMs: data.count > 0 ? data.total / data.count : 0,
+      maxMs: data.max,
+      totalMs: data.total,
+      samples: data.count
+    }))
+    .sort((a, b) => b.totalMs - a.totalMs);
+
+  for (let i = 0; i < orderedSections.length; i++) {
+    const section = orderedSections[i];
+    sections[section.name] = section;
+  }
+
+  const elapsedMs = perfDiagnostics.startedAt > 0 ? performance.now() - perfDiagnostics.startedAt : 0;
+  return {
+    active: perfDiagnostics.active,
+    label: perfDiagnostics.label,
+    elapsedMs,
+    frameCount: perfDiagnostics.frameCount,
+    averageFrameMs: perfDiagnostics.frameCount > 0 ? perfDiagnostics.totalFrameTime / perfDiagnostics.frameCount : 0,
+    averageFps: perfDiagnostics.totalFrameTime > 0 ? (perfDiagnostics.frameCount * 1000) / perfDiagnostics.totalFrameTime : 0,
+    maxFrameMs: perfDiagnostics.maxFrameTime,
+    minFps: perfDiagnostics.maxFrameTime > 0 ? 1000 / perfDiagnostics.maxFrameTime : 0,
+    averageUpdateMs: perfDiagnostics.updateCount > 0 ? perfDiagnostics.totalUpdateTime / perfDiagnostics.updateCount : 0,
+    averageDrawMs: perfDiagnostics.drawCount > 0 ? perfDiagnostics.totalDrawTime / perfDiagnostics.drawCount : 0,
+    sections,
+    orderedSections
+  };
+}
+
+function createScenarioEnemy(type, x, y, overrides = {}) {
+  const baseConfig = type === "web"
+    ? {
+        type: "web",
+        width: 58,
+        height: 54,
+        speed: 1.6,
+        hp: 4,
+        hitFlash: 0,
+        animationOffset: 0,
+        shootTimer: 24
+      }
+    : type === "zigzag"
+      ? {
+          type: "zigzag",
+          width: 64,
+          height: 56,
+          speed: 2.1,
+          hp: 2,
+          hitFlash: 0,
+          animationOffset: 0,
+          zigzagSpeed: 3.0,
+          zigzagDirection: 1,
+          zigzagTargetDirection: 1,
+          zigzagDirectionLerp: 0.12,
+          directionChangeTimer: 24,
+          shootTimer: 18
+        }
+      : {
+          type: "normal",
+          width: 63,
+          height: 58,
+          speed: 2,
+          hp: 2,
+          hitFlash: 0,
+          animationOffset: 0
+        };
+
+  return {
+    ...baseConfig,
+    x,
+    y,
+    ...overrides
+  };
+}
+
+function createScenarioWebBullet(enemy) {
+  const dx = (player.x + player.width / 2) - (enemy.x + enemy.width / 2);
+  const dy = (player.y + player.height / 2) - (enemy.y + enemy.height / 2);
+  const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+  return {
+    x: enemy.x + enemy.width / 2 - 8,
+    y: enemy.y + enemy.height,
+    width: 16,
+    height: 16,
+    baseWidth: 16,
+    baseHeight: 16,
+    drawScale: 1.6,
+    growAge: 36,
+    growDuration: 84,
+    webPulsePhase: 0,
+    webPulseAge: 30,
+    webSpinAngle: 0,
+    webSpinSpeed: 0.075,
+    webMorphPhase: 0,
+    webMorphAge: 30,
+    webMorphScaleX: 1,
+    webMorphScaleY: 1,
+    webMorphRotation: 0,
+    webMorphSpinLag: 0,
+    bossWebAttack: false,
+    speedX: dx / distance * 2.25,
+    speedY: dy / distance * 2.25
+  };
+}
+
+function startBossForPerfScenario() {
+  startBossPhase();
+  boss.introActive = false;
+  boss.introTimer = 0;
+  boss.x = canvas.width / 2 - boss.width / 2;
+  boss.y = 70;
+  boss.prevX = boss.x;
+  boss.prevY = boss.y;
+  boss.velocityX = 0;
+  boss.velocityY = 0;
+  boss.speed = 0;
+  boss.direction = 1;
+  boss.directionChangeTimer = 9999;
+  boss.hitFlash = 0;
+  boss.rageFlashTimer = 0;
+  boss.majorAttackLockTimer = 0;
+  boss.shootTimer = boss.shootDelay;
+  boss.webShootTimer = boss.webShootDelay;
+  boss.dangerZoneTimer = boss.dangerZoneDelay;
+  boss.spreadAttackActive = false;
+  boss.spreadAttackSources = [];
+  boss.spreadAttackDebugQueues = { "-1": [], "1": [] };
+  bossAttackTelegraphs.length = 0;
+  bossBullets.length = 0;
+  bossWebBullets.length = 0;
+  bossDangerZones.length = 0;
+  enemyBullets.length = 0;
+  webBullets.length = 0;
+  particles.length = 0;
+  delayedExplosions.length = 0;
+  delayedParticleBursts.length = 0;
+  impactFlashes.length = 0;
+  spriteExplosions.length = 0;
+  muzzleFlashes.length = 0;
+  stopBossMissileFlightLoop(true);
+  stopBossCoreLaserLoop(true);
+  resetBossCoreLaser();
+  bossCoreLaser.cooldown = 99999;
+  bossCoreLaser.cooldownMax = 99999;
+}
+
+function setBossPerfLegState(upperAlive, middleAlive, lowerAlive) {
+  window.__bossResearch.setLegPairState("upper", upperAlive);
+  window.__bossResearch.setLegPairState("middle", middleAlive);
+  window.__bossResearch.setLegPairState("lower", lowerAlive);
+}
+
+function setupPerfScenario(name) {
+  scene = "game";
+  isPaused = false;
+  clearInputState();
+  clearDevPhaseObjects();
+  bullets.length = 0;
+  worldAtmosphereParticles.length = 0;
+  playerSpeedStreaks.length = 0;
+  playerWebOverlay.active = false;
+  playerWebOverlay.timer = 0;
+  player.x = canvas.width / 2 - player.width / 2;
+  player.y = canvas.height - 140;
+  player.hp = 5;
+  player.damageCooldown = 0;
+  player.slowTimer = 0;
+  shootCooldown = 0;
+  timeScale = 1;
+  enemySpawnTimer = -99999;
+  missionTimer = name === "zigzag" ? 46 * 60 : 78 * 60;
+
+  if (name === "empty") {
+    missionTimer = 8 * 60;
+    return true;
+  }
+
+  if (name === "basic") {
+    missionTimer = 8 * 60;
+    enemies.push(
+      createScenarioEnemy("normal", canvas.width * 0.16, 120),
+      createScenarioEnemy("normal", canvas.width * 0.38, 176),
+      createScenarioEnemy("normal", canvas.width * 0.62, 112),
+      createScenarioEnemy("normal", canvas.width * 0.78, 188)
+    );
+    return true;
+  }
+
+  if (name === "tank") {
+    missionTimer = 18 * 60;
+    const tanks = [
+      {
+        type: "tank",
+        x: canvas.width * 0.18,
+        y: 120,
+        width: 72,
+        height: 72,
+        speed: 1,
+        hp: 6,
+        hitFlash: 0,
+        animationOffset: 0,
+        shootTimer: 4
+      },
+      {
+        type: "tank",
+        x: canvas.width * 0.62,
+        y: 168,
+        width: 72,
+        height: 72,
+        speed: 1,
+        hp: 6,
+        hitFlash: 0,
+        animationOffset: 0,
+        shootTimer: 10
+      }
+    ];
+    enemies.push(...tanks);
+    fireTankHomingMissile(tanks[0]);
+    fireTankHomingMissile(tanks[1]);
+    return true;
+  }
+
+  if (name === "zigzag") {
+    const zigzags = [
+      createScenarioEnemy("zigzag", canvas.width * 0.16, 120, { zigzagDirection: 1, zigzagTargetDirection: 1, shootTimer: 6 }),
+      createScenarioEnemy("zigzag", canvas.width * 0.38, 176, { zigzagDirection: -1, zigzagTargetDirection: -1, shootTimer: 14 }),
+      createScenarioEnemy("zigzag", canvas.width * 0.62, 112, { zigzagDirection: 1, zigzagTargetDirection: 1, shootTimer: 10 }),
+      createScenarioEnemy("zigzag", canvas.width * 0.78, 188, { zigzagDirection: -1, zigzagTargetDirection: -1, shootTimer: 18 })
+    ];
+    enemies.push(...zigzags);
+    fireZigzagShot(zigzags[0]);
+    fireZigzagShot(zigzags[2]);
+    return true;
+  }
+
+  if (name === "web") {
+    const webs = [
+      createScenarioEnemy("web", canvas.width * 0.18, 120, { shootTimer: 8 }),
+      createScenarioEnemy("web", canvas.width * 0.42, 170, { shootTimer: 14 }),
+      createScenarioEnemy("web", canvas.width * 0.68, 128, { shootTimer: 20 }),
+      createScenarioEnemy("web", canvas.width * 0.8, 210, { shootTimer: 26 })
+    ];
+    enemies.push(...webs);
+    for (let i = 0; i < webs.length; i++) {
+      webBullets.push(createScenarioWebBullet(webs[i]));
+    }
+    return true;
+  }
+
+  if (name === "mix") {
+    const zigzagA = createScenarioEnemy("zigzag", canvas.width * 0.16, 110, { zigzagDirection: 1, zigzagTargetDirection: 1, shootTimer: 8 });
+    const zigzagB = createScenarioEnemy("zigzag", canvas.width * 0.66, 164, { zigzagDirection: -1, zigzagTargetDirection: -1, shootTimer: 16 });
+    const webA = createScenarioEnemy("web", canvas.width * 0.36, 128, { shootTimer: 10 });
+    const webB = createScenarioEnemy("web", canvas.width * 0.78, 218, { shootTimer: 18 });
+    enemies.push(zigzagA, webA, zigzagB, webB);
+    fireZigzagShot(zigzagA);
+    fireZigzagShot(zigzagB);
+    webBullets.push(createScenarioWebBullet(webA), createScenarioWebBullet(webB));
+    return true;
+  }
+
+  if (name === "bossWeb") {
+    missionTimer = 125 * 60;
+    startBossForPerfScenario();
+    setBossPerfLegState(true, true, true);
+    boss.shootTimer = 99999;
+    boss.dangerZoneTimer = 99999;
+    boss.webShootTimer = 99999;
+    fireBossWebShot(-1);
+    fireBossWebShot(1);
+    fireBossWebShot(-1);
+    return true;
+  }
+
+  if (name === "bossIdle") {
+    missionTimer = 125 * 60;
+    startBossForPerfScenario();
+    setBossPerfLegState(true, true, true);
+    boss.shootTimer = 99999;
+    boss.webShootTimer = 99999;
+    boss.dangerZoneTimer = 99999;
+    return true;
+  }
+
+  if (name === "bossSpread") {
+    missionTimer = 125 * 60;
+    startBossForPerfScenario();
+    setBossPerfLegState(true, true, true);
+    boss.shootTimer = 99999;
+    boss.webShootTimer = 99999;
+    boss.dangerZoneTimer = 99999;
+    queueBossSpreadVolley(-1);
+    queueBossSpreadVolley(1);
+    return true;
+  }
+
+  if (name === "bossLaser") {
+    missionTimer = 125 * 60;
+    startBossForPerfScenario();
+    setBossPerfLegState(true, true, true);
+    boss.shootTimer = 99999;
+    boss.webShootTimer = 99999;
+    boss.dangerZoneTimer = 99999;
+    bossCoreLaser.state = "active";
+    bossCoreLaser.timer = bossCoreLaser.activeDuration;
+    bossCoreLaser.damageTickTimer = 0;
+    return true;
+  }
+
+  if (name === "bossMissile") {
+    missionTimer = 125 * 60;
+    startBossForPerfScenario();
+    setBossPerfLegState(true, true, true);
+    boss.shootTimer = 99999;
+    boss.webShootTimer = 99999;
+    boss.dangerZoneTimer = 99999;
+    launchBossDangerZoneMissile(-1);
+    launchBossDangerZoneMissile(1);
+    return true;
+  }
+
+  if (name === "bossDanger") {
+    missionTimer = 125 * 60;
+    startBossForPerfScenario();
+    setBossPerfLegState(true, true, true);
+    boss.shootTimer = 99999;
+    boss.webShootTimer = 99999;
+    boss.dangerZoneTimer = 99999;
+    const zoneA = getBossDangerZoneRect(canvas.width * 0.32, canvas.height * 0.72);
+    const zoneB = getBossDangerZoneRect(canvas.width * 0.68, canvas.height * 0.78);
+    spawnBossDangerZone(zoneA);
+    spawnBossDangerZone(zoneB);
+    bossDangerZones[0].state = "active";
+    bossDangerZones[0].timer = boss.dangerZoneActiveDuration;
+    bossDangerZones[1].state = "active";
+    bossDangerZones[1].timer = boss.dangerZoneActiveDuration;
+    return true;
+  }
+
+  return false;
+}
+
+function buildScreenRectFromCanvasRect(rect) {
+  const canvasRect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width > 0 ? canvasRect.width / canvas.width : 0;
+  const scaleY = canvas.height > 0 ? canvasRect.height / canvas.height : 0;
+  return {
+    x: rect.x * scaleX,
+    y: rect.y * scaleY,
+    width: rect.width * scaleX,
+    height: rect.height * scaleY
+  };
+}
+
+function getProjectileCanvasRect(entity, spriteConfig) {
+  const drawScale = entity.drawScale || 1;
+  const pulse = spriteConfig.webPulse
+    ? 1 + Math.sin((entity.webPulsePhase || 0) + (entity.webPulseAge || 0) * 0.28) * 0.07
+    : 1;
+  const effectiveScale = drawScale * pulse;
+  const drawWidth = (spriteConfig.drawWidth || entity.width) * effectiveScale;
+  const drawHeight = (spriteConfig.drawHeight || entity.height) * effectiveScale;
+  return {
+    x: entity.x + entity.width / 2 - drawWidth / 2,
+    y: entity.y + entity.height / 2 - drawHeight / 2,
+    width: drawWidth,
+    height: drawHeight
+  };
+}
+
+function getGameplayMetricSnapshot() {
+  const viewport = window.__getGameplayRenderViewport();
+  const sampleWebEnemy = enemies.find((enemy) => enemy.type === "web") || null;
+  const sampleZigzagEnemy = enemies.find((enemy) => enemy.type === "zigzag") || null;
+  const sampleWebBullet = webBullets[0] || null;
+  const sampleZigzagBullet = enemyBullets.find((bullet) => bullet.type === "zigzagShot" && (!bullet.spawnDelay || bullet.spawnDelay <= 0)) || null;
+  const playerRect = getCenteredDrawRect(player, sprites.player);
+  const result = {
+    viewport,
+    counts: {
+      enemies: enemies.length,
+      webEnemies: countEnemiesOfType("web"),
+      zigzagEnemies: countEnemiesOfType("zigzag"),
+      enemyBullets: enemyBullets.length,
+      webBullets: webBullets.length,
+      particles: particles.length
+    },
+    player: playerRect
+      ? {
+          hitbox: { x: player.x, y: player.y, width: player.width, height: player.height },
+          canvasRect: playerRect,
+          screenRect: buildScreenRectFromCanvasRect(playerRect)
+        }
+      : null,
+    webEnemy: sampleWebEnemy
+      ? {
+          hitbox: { x: sampleWebEnemy.x, y: sampleWebEnemy.y, width: sampleWebEnemy.width, height: sampleWebEnemy.height },
+          canvasRect: getCenteredDrawRect(sampleWebEnemy, sprites.enemies.web),
+          screenRect: buildScreenRectFromCanvasRect(getCenteredDrawRect(sampleWebEnemy, sprites.enemies.web))
+        }
+      : null,
+    zigzagEnemy: sampleZigzagEnemy
+      ? {
+          hitbox: { x: sampleZigzagEnemy.x, y: sampleZigzagEnemy.y, width: sampleZigzagEnemy.width, height: sampleZigzagEnemy.height },
+          canvasRect: getCenteredDrawRect(sampleZigzagEnemy, sprites.enemies.zigzag),
+          screenRect: buildScreenRectFromCanvasRect(getCenteredDrawRect(sampleZigzagEnemy, sprites.enemies.zigzag))
+        }
+      : null,
+    webBullet: sampleWebBullet
+      ? {
+          hitbox: { x: sampleWebBullet.x, y: sampleWebBullet.y, width: sampleWebBullet.width, height: sampleWebBullet.height },
+          canvasRect: getProjectileCanvasRect(sampleWebBullet, sprites.projectiles.web),
+          screenRect: buildScreenRectFromCanvasRect(getProjectileCanvasRect(sampleWebBullet, sprites.projectiles.web))
+        }
+      : null,
+    zigzagBullet: sampleZigzagBullet
+      ? {
+          hitbox: { x: sampleZigzagBullet.x, y: sampleZigzagBullet.y, width: sampleZigzagBullet.width, height: sampleZigzagBullet.height },
+          canvasRect: {
+            x: sampleZigzagBullet.x + sampleZigzagBullet.width / 2 - (getZigzagVolleySpriteConfig(sampleZigzagBullet.zigzagVolleyVariant).drawWidth || sampleZigzagBullet.width) / 2,
+            y: sampleZigzagBullet.y + sampleZigzagBullet.height / 2 - (getZigzagVolleySpriteConfig(sampleZigzagBullet.zigzagVolleyVariant).drawHeight || sampleZigzagBullet.height) / 2,
+            width: getZigzagVolleySpriteConfig(sampleZigzagBullet.zigzagVolleyVariant).drawWidth || sampleZigzagBullet.width,
+            height: getZigzagVolleySpriteConfig(sampleZigzagBullet.zigzagVolleyVariant).drawHeight || sampleZigzagBullet.height
+          },
+          screenRect: buildScreenRectFromCanvasRect({
+            x: sampleZigzagBullet.x + sampleZigzagBullet.width / 2 - (getZigzagVolleySpriteConfig(sampleZigzagBullet.zigzagVolleyVariant).drawWidth || sampleZigzagBullet.width) / 2,
+            y: sampleZigzagBullet.y + sampleZigzagBullet.height / 2 - (getZigzagVolleySpriteConfig(sampleZigzagBullet.zigzagVolleyVariant).drawHeight || sampleZigzagBullet.height) / 2,
+            width: getZigzagVolleySpriteConfig(sampleZigzagBullet.zigzagVolleyVariant).drawWidth || sampleZigzagBullet.width,
+            height: getZigzagVolleySpriteConfig(sampleZigzagBullet.zigzagVolleyVariant).drawHeight || sampleZigzagBullet.height
+          })
+        }
+      : null
+  };
+
+  return result;
+}
+
+function getBackgroundMetricSnapshot() {
+  const viewport = window.__getGameplayRenderViewport();
+  const placement = getVillageBackgroundPlacement();
+  const lairScreen = placement ? villageWorldToScreen(placement, 370, 150) : null;
+  const playerRect = getCenteredDrawRect(player, sprites.player);
+
+  return {
+    scene,
+    missionTimer,
+    exactMissionTicks: getVillageBackgroundExactMissionTicks(),
+    bossStartMissionTicks: villageBossStartMissionTicks,
+    boss: {
+      active: boss.active,
+      introActive: boss.introActive,
+      deathActive: bossDeathSequence.active
+    },
+    viewport,
+    background: placement
+      ? {
+          drawWidth: placement.drawWidth,
+          drawHeight: placement.drawHeight,
+          maxOffset: placement.maxOffset,
+          scrollDistance: placement.scrollDistance,
+          offset: placement.offset,
+          progress: placement.progress,
+          x: placement.x,
+          y: placement.y,
+          scale: placement.scale
+        }
+      : null,
+    lairScreen: lairScreen
+      ? {
+          x: lairScreen.x,
+          y: lairScreen.y,
+          normalizedX: canvas.width > 0 ? lairScreen.x / canvas.width : 0,
+          normalizedY: canvas.height > 0 ? lairScreen.y / canvas.height : 0
+        }
+      : null,
+    playerScreen: playerRect
+      ? {
+          x: playerRect.x,
+          y: playerRect.y,
+          width: playerRect.width,
+          height: playerRect.height,
+          normalizedX: canvas.width > 0 ? playerRect.x / canvas.width : 0,
+          normalizedY: canvas.height > 0 ? playerRect.y / canvas.height : 0
+        }
+      : null
+  };
+}
+
+window.__perfDiagnostics = {
+  start(label = "manual") {
+    resetPerfDiagnostics(label);
+    perfDiagnostics.active = true;
+    perfDiagnostics.startedAt = performance.now();
+    return snapshotPerfDiagnostics();
+  },
+  stop() {
+    const snapshot = snapshotPerfDiagnostics();
+    perfDiagnostics.active = false;
+    return snapshot;
+  },
+  snapshot() {
+    return snapshotPerfDiagnostics();
+  },
+  isActive() {
+    return perfDiagnostics.active;
+  },
+  setupScenario(name) {
+    return setupPerfScenario(name);
+  },
+  captureGameplayMetrics() {
+    return getGameplayMetricSnapshot();
+  },
+  captureBackgroundMetrics() {
+    return getBackgroundMetricSnapshot();
+  },
+  setMissionTimer(ticks) {
+    if (!Number.isFinite(ticks)) {
+      return getBackgroundMetricSnapshot();
+    }
+
+    missionTimer = Math.max(0, ticks);
+    gameUpdateAccumulator = 0;
+    return getBackgroundMetricSnapshot();
+  }
+};
+
+window.__mobileDebug = {
+  toggleGodmode() {
+    if (!isDeveloperModeEnabled()) {
+      return false;
+    }
+
+    isPlayerInvulnerable = !isPlayerInvulnerable;
+
+    if (isPlayerInvulnerable) {
+      clearPlayerSlowEffect();
+    }
+
+    return isPlayerInvulnerable;
+  },
+  isGodmodeEnabled() {
+    return isPlayerInvulnerable === true;
+  },
+  nextPhase() {
+    if (!isDeveloperModeEnabled()) {
+      return false;
+    }
+
+    jumpToNextMissionPhase();
+    return true;
+  },
+  previousPhase() {
+    if (!isDeveloperModeEnabled()) {
+      return false;
+    }
+
+    jumpToPreviousMissionPhase();
+    return true;
+  },
+  halveTimeScale() {
+    if (!isDeveloperModeEnabled()) {
+      return timeScale;
+    }
+
+    adjustTimeScale(0.5);
+    return timeScale;
+  },
+  doubleTimeScale() {
+    if (!isDeveloperModeEnabled()) {
+      return timeScale;
+    }
+
+    adjustTimeScale(2);
+    return timeScale;
+  },
+  resetTimeScale() {
+    if (!isDeveloperModeEnabled()) {
+      return timeScale;
+    }
+
+    timeScale = 1;
+    return timeScale;
+  },
+  getTimeScale() {
+    return timeScale;
+  },
+  cycleOverlayMode() {
+    if (!isDeveloperModeEnabled()) {
+      return gameplayDebugOverlayModes.normal;
+    }
+
+    cycleGameplayDebugOverlayMode();
+    return gameplayDebugOverlayMode;
+  },
+  getOverlayMode() {
+    return gameplayDebugOverlayMode;
+  },
+  startBossTest() {
+    if (!isDeveloperModeEnabled()) {
+      return false;
+    }
+
+    if (window.__bossResearch && typeof window.__bossResearch.resetBossForFrame === "function") {
+      window.__bossResearch.resetBossForFrame();
+      clearInputState();
+      return true;
+    }
+
+    return false;
+  }
+};
+
 function formatTimeScale() {
   return Number.isInteger(timeScale) ? timeScale.toFixed(0) : timeScale.toString();
 }
@@ -4307,12 +5189,16 @@ document.addEventListener("visibilitychange", () => {
 // =========================
 
 function update() {
+  const updateStartTime = perfDiagnostics.active ? performance.now() : 0;
+
   if (tankMissileSoundCooldown > 0) {
     tankMissileSoundCooldown--;
   }
 
-  updateTankMissileFlightHiss();
-  updateBossMissileFlightLoop();
+  measurePerfSection("update.audioLoops", () => {
+    updateTankMissileFlightHiss();
+    updateBossMissileFlightLoop();
+  });
 
   if (scene === "game" && !isPaused) {
     const slowMotionActive = slowMotionTimer > 0;
@@ -4338,93 +5224,216 @@ function update() {
       startBossPhase();
     }
 
-    moveStars();
-    updatePlayerDamageCooldown();
-    updateBossRage();
-    updateBossIntro();
-    updateWorldAtmosphere();
-    updateAmbientClouds();
-    updateAmbientWind();
-    movePlayer();
-    handleShooting();
+    measurePerfSection("update.ambient", () => {
+      moveStars();
+      updatePlayerDamageCooldown();
+      updateBossRage();
+      updateBossIntro();
+      updateWorldAtmosphere();
+      updateAmbientClouds();
+      updateAmbientWind();
+    });
+    measurePerfSection("update.player", () => {
+      movePlayer();
+      handleShooting();
+    });
 
     if (slowMotionActive && slowMotionFrame % 2 === 1) {
-      moveImpactFlashes();
-      moveDelayedExplosions();
-      moveDelayedParticleBursts();
-      moveSpriteExplosions();
-      moveParticles();
-      movePlayerSpeedEffects();
-      moveWorldAtmosphereParticles();
-      moveMuzzleFlashes();
-      moveBossAttackTelegraphs();
+      measurePerfSection("update.effectsOnly", () => {
+        moveImpactFlashes();
+        moveDelayedExplosions();
+        moveDelayedParticleBursts();
+        moveSpriteExplosions();
+        moveParticles();
+        movePlayerSpeedEffects();
+        moveWorldAtmosphereParticles();
+        moveMuzzleFlashes();
+        moveBossAttackTelegraphs();
+      });
+      if (perfDiagnostics.active) {
+        perfDiagnostics.totalUpdateTime += performance.now() - updateStartTime;
+        perfDiagnostics.updateCount++;
+      }
       return;
     }
 
-    moveBullets();
+    measurePerfSection("update.playerBullets", () => {
+      moveBullets();
+    });
 
     if (!boss.active) {
-      spawnEnemies();
+      measurePerfSection("update.spawnEnemies", () => {
+        spawnEnemies();
+      });
     }
 
-    moveEnemies();
-    moveEnemyBullets();
-    updateEnemyHazardZones();
-    moveWebBullets();
-    updatePlayerWebOverlay();
+    measurePerfSection("update.moveEnemies", () => {
+      moveEnemies();
+    });
+    measurePerfSection("update.moveEnemyBullets", () => {
+      moveEnemyBullets();
+    });
+    measurePerfSection("update.enemyHazardZones", () => {
+      updateEnemyHazardZones();
+    });
+    measurePerfSection("update.moveWebBullets", () => {
+      moveWebBullets();
+    });
+    measurePerfSection("update.playerWebOverlay", () => {
+      updatePlayerWebOverlay();
+    });
 
     if (bossDeathSequence.active) {
-      updateBossDeathSequence();
-      updateBossDangerZones();
-      moveBossBullets();
-      moveBossWebBullets();
-      moveBossAttackTelegraphs();
-      checkBulletEnemyCollisions();
-      checkPlayerEnemyCollisions();
-      checkEnemyBulletPlayerCollisions();
-      checkEnemyHazardZonePlayerCollisions();
-      checkWebBulletPlayerCollisions();
-      checkBossBulletPlayerCollisions();
-    checkBossWebBulletPlayerCollisions();
-    checkBossDangerZonePlayerCollision();
-    moveImpactFlashes();
-    cleanupDestroyedBullets();
-    moveDelayedExplosions();
-    moveDelayedParticleBursts();
-    moveSpriteExplosions();
-      moveParticles();
-      moveMuzzleFlashes();
+      measurePerfSection("update.bossDeath", () => {
+        updateBossDeathSequence();
+      });
+      measurePerfSection("update.bossDangerZones", () => {
+        updateBossDangerZones();
+      });
+      measurePerfSection("update.moveBossBullets", () => {
+        moveBossBullets();
+      });
+      measurePerfSection("update.moveBossWebBullets", () => {
+        moveBossWebBullets();
+      });
+      measurePerfSection("update.moveBossTelegraphs", () => {
+        moveBossAttackTelegraphs();
+      });
+      measurePerfSection("update.checkBulletEnemyCollisions", () => {
+        checkBulletEnemyCollisions();
+      });
+      measurePerfSection("update.checkPlayerEnemyCollisions", () => {
+        checkPlayerEnemyCollisions();
+      });
+      measurePerfSection("update.checkEnemyBulletPlayerCollisions", () => {
+        checkEnemyBulletPlayerCollisions();
+      });
+      measurePerfSection("update.checkEnemyHazardCollisions", () => {
+        checkEnemyHazardZonePlayerCollisions();
+      });
+      measurePerfSection("update.checkWebBulletCollisions", () => {
+        checkWebBulletPlayerCollisions();
+      });
+      measurePerfSection("update.checkBossBulletCollisions", () => {
+        checkBossBulletPlayerCollisions();
+      });
+      measurePerfSection("update.checkBossWebBulletCollisions", () => {
+        checkBossWebBulletPlayerCollisions();
+      });
+      measurePerfSection("update.checkBossDangerZoneCollisions", () => {
+        checkBossDangerZonePlayerCollision();
+      });
+      measurePerfSection("update.impactFlashes", () => {
+        moveImpactFlashes();
+      });
+      measurePerfSection("update.cleanupBullets", () => {
+        cleanupDestroyedBullets();
+      });
+      measurePerfSection("update.delayedExplosions", () => {
+        moveDelayedExplosions();
+        moveDelayedParticleBursts();
+      });
+      measurePerfSection("update.spriteExplosions", () => {
+        moveSpriteExplosions();
+      });
+      measurePerfSection("update.particles", () => {
+        moveParticles();
+      });
+      measurePerfSection("update.muzzleFlashes", () => {
+        moveMuzzleFlashes();
+      });
+      if (perfDiagnostics.active) {
+        perfDiagnostics.totalUpdateTime += performance.now() - updateStartTime;
+        perfDiagnostics.updateCount++;
+      }
       return;
     }
 
-    moveBoss();
-    handleBossShooting();
-    updateBossDangerZones();
-    updateBossCoreLaser();
-    moveBossBullets();
-    moveBossWebBullets();
-    moveBossAttackTelegraphs();
-    checkBulletEnemyCollisions();
-    checkBulletBossCollisions();
-    checkPlayerEnemyCollisions();
-    checkEnemyBulletPlayerCollisions();
-    checkEnemyHazardZonePlayerCollisions();
-    checkWebBulletPlayerCollisions();
-    checkBossBulletPlayerCollisions();
-    checkBossWebBulletPlayerCollisions();
-    checkBossDangerZonePlayerCollision();
-    checkBossCoreLaserPlayerCollision();
-    checkBossPlayerCollision();
-    checkBossLegPlayerCollisions();
-    cleanupDestroyedBullets();
-    moveImpactFlashes();
-    moveDelayedExplosions();
-    moveDelayedParticleBursts();
-    moveSpriteExplosions();
-    moveParticles();
-    movePlayerSpeedEffects();
-    moveWorldAtmosphereParticles();
-    moveMuzzleFlashes();
+    measurePerfSection("update.moveBoss", () => {
+      moveBoss();
+    });
+    measurePerfSection("update.handleBossShooting", () => {
+      handleBossShooting();
+    });
+    measurePerfSection("update.bossDangerZones", () => {
+      updateBossDangerZones();
+    });
+    measurePerfSection("update.bossCoreLaser", () => {
+      updateBossCoreLaser();
+    });
+    measurePerfSection("update.moveBossBullets", () => {
+      moveBossBullets();
+    });
+    measurePerfSection("update.moveBossWebBullets", () => {
+      moveBossWebBullets();
+    });
+    measurePerfSection("update.moveBossTelegraphs", () => {
+      moveBossAttackTelegraphs();
+    });
+    measurePerfSection("update.checkBulletEnemyCollisions", () => {
+      checkBulletEnemyCollisions();
+    });
+    measurePerfSection("update.checkBulletBossCollisions", () => {
+      checkBulletBossCollisions();
+    });
+    measurePerfSection("update.checkPlayerEnemyCollisions", () => {
+      checkPlayerEnemyCollisions();
+    });
+    measurePerfSection("update.checkEnemyBulletPlayerCollisions", () => {
+      checkEnemyBulletPlayerCollisions();
+    });
+    measurePerfSection("update.checkEnemyHazardCollisions", () => {
+      checkEnemyHazardZonePlayerCollisions();
+    });
+    measurePerfSection("update.checkWebBulletCollisions", () => {
+      checkWebBulletPlayerCollisions();
+    });
+    measurePerfSection("update.checkBossBulletCollisions", () => {
+      checkBossBulletPlayerCollisions();
+    });
+    measurePerfSection("update.checkBossWebBulletCollisions", () => {
+      checkBossWebBulletPlayerCollisions();
+    });
+    measurePerfSection("update.checkBossDangerZoneCollisions", () => {
+      checkBossDangerZonePlayerCollision();
+    });
+    measurePerfSection("update.checkBossLaserCollisions", () => {
+      checkBossCoreLaserPlayerCollision();
+    });
+    measurePerfSection("update.checkBossBodyCollisions", () => {
+      checkBossPlayerCollision();
+      checkBossLegPlayerCollisions();
+    });
+    measurePerfSection("update.cleanupBullets", () => {
+      cleanupDestroyedBullets();
+    });
+    measurePerfSection("update.impactFlashes", () => {
+      moveImpactFlashes();
+    });
+    measurePerfSection("update.delayedExplosions", () => {
+      moveDelayedExplosions();
+      moveDelayedParticleBursts();
+    });
+    measurePerfSection("update.spriteExplosions", () => {
+      moveSpriteExplosions();
+    });
+    measurePerfSection("update.particles", () => {
+      moveParticles();
+    });
+    measurePerfSection("update.playerSpeedEffects", () => {
+      movePlayerSpeedEffects();
+    });
+    measurePerfSection("update.worldAtmosphereParticles", () => {
+      moveWorldAtmosphereParticles();
+    });
+    measurePerfSection("update.muzzleFlashes", () => {
+      moveMuzzleFlashes();
+    });
+  }
+
+  if (perfDiagnostics.active) {
+    perfDiagnostics.totalUpdateTime += performance.now() - updateStartTime;
+    perfDiagnostics.updateCount++;
   }
 }
 
@@ -4922,6 +5931,13 @@ function spawnTankEnemy() {
   });
 }
 
+function getRegularWebEnemyShootDelay() {
+  const pcDelay = (90 + Math.random() * 80) * webShootIntervalMultiplier;
+  return isMobileGameplayViewportActive()
+    ? pcDelay * mobileWebShootIntervalMultiplier
+    : pcDelay;
+}
+
 function spawnWebEnemy() {
   const spawnPoint = findEnemySpawnPosition(58, 54, -45);
 
@@ -4935,7 +5951,7 @@ function spawnWebEnemy() {
     hp: 4,
     hitFlash: 0,
     animationOffset: Math.floor(Math.random() * 60),
-    shootTimer: (90 + Math.random() * 80) * webShootIntervalMultiplier
+    shootTimer: getRegularWebEnemyShootDelay()
   });
 }
 
@@ -5050,7 +6066,7 @@ function moveEnemies() {
         });
         runStats.webAttacksLaunched++;
 
-        enemies[i].shootTimer = (90 + Math.random() * 80) * webShootIntervalMultiplier;
+        enemies[i].shootTimer = getRegularWebEnemyShootDelay();
       }
     }
 
@@ -5338,6 +6354,8 @@ function updateEnemyHazardZones() {
 }
 
 function moveWebBullets() {
+  const sectionStartTime = perfDiagnostics.active ? performance.now() : 0;
+
   for (let i = webBullets.length - 1; i >= 0; i--) {
     if (webBullets[i].impacting) {
       webBullets[i].impactTimer--;
@@ -5388,6 +6406,10 @@ function moveWebBullets() {
     ) {
       webBullets.splice(i, 1);
     }
+  }
+
+  if (perfDiagnostics.active) {
+    recordPerfSection("update.moveWebBullets.detail", performance.now() - sectionStartTime);
   }
 }
 
@@ -10731,33 +11753,49 @@ function drawMuzzleFlashes() {
 }
 
 function getGameplayHudLayout() {
-  const maxHudWidth = Math.max(0, canvas.width - gameplayHudSpriteConfig.anchorX * 2);
-  const minHudWidth = Math.min(gameplayHudSpriteConfig.minWidth, maxHudWidth);
-  const hudWidth = clamp(canvas.width * gameplayHudSpriteConfig.widthFactor, minHudWidth, Math.min(gameplayHudSpriteConfig.maxWidth, maxHudWidth));
-  const hudHeight = Math.round(hudWidth * (gameplayHudSpriteConfig.crop.sh / gameplayHudSpriteConfig.crop.sw));
-  const scale = hudWidth / gameplayHudSpriteConfig.crop.sw;
+  const isMobileGameplay = isMobileGameplayViewportActive();
+  const bossHudTopInset = boss.active ? (isMobileGameplay ? 54 : 58) : 0;
+  const hudConfig = isMobileGameplay
+    ? {
+        ...gameplayHudSpriteConfig,
+        anchorX: 8,
+        anchorY: 8 + bossHudTopInset,
+        widthFactor: 0.28,
+        minWidth: 240,
+        maxWidth: 320,
+        textBaseFontSize: 64
+      }
+    : {
+        ...gameplayHudSpriteConfig,
+        anchorY: gameplayHudSpriteConfig.anchorY + bossHudTopInset
+      };
+  const maxHudWidth = Math.max(0, canvas.width - hudConfig.anchorX * 2);
+  const minHudWidth = Math.min(hudConfig.minWidth, maxHudWidth);
+  const hudWidth = clamp(canvas.width * hudConfig.widthFactor, minHudWidth, Math.min(hudConfig.maxWidth, maxHudWidth));
+  const hudHeight = Math.round(hudWidth * (hudConfig.crop.sh / hudConfig.crop.sw));
+  const scale = hudWidth / hudConfig.crop.sw;
 
   function scaleRect(rect) {
     return {
-      x: Math.round(gameplayHudSpriteConfig.anchorX + rect.x * scale),
-      y: Math.round(gameplayHudSpriteConfig.anchorY + rect.y * scale),
+      x: Math.round(hudConfig.anchorX + rect.x * scale),
+      y: Math.round(hudConfig.anchorY + rect.y * scale),
       width: Math.round(rect.width * scale),
       height: Math.round(rect.height * scale)
     };
   }
 
   return {
-    x: gameplayHudSpriteConfig.anchorX,
-    y: gameplayHudSpriteConfig.anchorY,
+    x: hudConfig.anchorX,
+    y: hudConfig.anchorY,
     width: Math.round(hudWidth),
     height: hudHeight,
     scale,
-    fontSize: Math.max(17, Math.round(gameplayHudSpriteConfig.textBaseFontSize * scale)),
+    fontSize: Math.max(isMobileGameplay ? 15 : 17, Math.round(hudConfig.textBaseFontSize * scale)),
     areas: {
-      durabilityLabel: scaleRect(gameplayHudSpriteConfig.areas.durabilityLabel),
-      hpBarFill: scaleRect(gameplayHudSpriteConfig.areas.hpBarFill),
-      score: scaleRect(gameplayHudSpriteConfig.areas.score),
-      time: scaleRect(gameplayHudSpriteConfig.areas.time)
+      durabilityLabel: scaleRect(hudConfig.areas.durabilityLabel),
+      hpBarFill: scaleRect(hudConfig.areas.hpBarFill),
+      score: scaleRect(hudConfig.areas.score),
+      time: scaleRect(hudConfig.areas.time)
     }
   };
 }
@@ -11113,6 +12151,7 @@ function drawBossAssembledOwnedLeg(leg, alpha = 1, compositeOperation = "source-
 }
 
 function drawZigzagEnemyGlow(enemy, spriteConfig) {
+  const sectionStartTime = perfDiagnostics.active ? performance.now() : 0;
   if (!spriteConfig || !spriteConfig.image.loaded) {
     return false;
   }
@@ -11141,6 +12180,10 @@ function drawZigzagEnemyGlow(enemy, spriteConfig) {
     drawHeight
   );
   ctx.restore();
+
+  if (perfDiagnostics.active) {
+    recordPerfSection("draw.zigzagEnemyGlow", performance.now() - sectionStartTime);
+  }
 
   return true;
 }
@@ -11711,32 +12754,52 @@ function drawBoss() {
   ctx.restore();
 }
 
-function drawBossHpBar() {
+function getBossHpBarLayout(hudLayout = null) {
+  const horizontalPadding = isMobileGameplayViewportActive() ? 18 : 40;
+  const maxBarWidth = canvas.width - horizontalPadding * 2;
+  const preferredBarWidth = isMobileGameplayViewportActive()
+    ? canvas.width - 56
+    : canvas.width - 80;
+  const barWidth = Math.max(220, Math.min(maxBarWidth, preferredBarWidth));
+  const barHeight = isMobileGameplayViewportActive() ? 14 : 16;
+  const barY = 15;
+
+  return {
+    width: barWidth,
+    height: barHeight,
+    x: Math.round((canvas.width - barWidth) / 2),
+    y: barY,
+    labelY: Math.round(barY + 36)
+  };
+}
+
+function drawBossHpBar(hudLayout = null) {
   if (!boss.active) {
     return;
   }
 
-  const barWidth = canvas.width - 80;
-  const barHeight = 16;
-  const barX = 40;
-  const barY = 15;
+  const layout = getBossHpBarLayout(hudLayout);
   const hpPercent = boss.hp / boss.maxHp;
 
+  ctx.save();
   ctx.fillStyle = "#333333";
-  ctx.fillRect(barX, barY, barWidth, barHeight);
+  ctx.fillRect(layout.x, layout.y, layout.width, layout.height);
 
   ctx.fillStyle = "#ff3333";
-  ctx.fillRect(barX, barY, barWidth * hpPercent, barHeight);
+  ctx.fillRect(layout.x, layout.y, layout.width * hpPercent, layout.height);
 
   ctx.strokeStyle = "white";
   ctx.lineWidth = 2;
-  ctx.strokeRect(barX, barY, barWidth, barHeight);
+  ctx.strokeRect(layout.x, layout.y, layout.width, layout.height);
 
   ctx.fillStyle = "white";
-  ctx.font = "14px Arial";
+  ctx.font = (isMobileGameplayViewportActive() ? 12 : 14) + 'px "BoldPixels"';
   ctx.textAlign = "center";
-  ctx.fillText("BOSS HP", canvas.width / 2, barY + 36);
+  ctx.textBaseline = "middle";
+  ctx.fillText("BOSS HP", canvas.width / 2, layout.labelY);
   ctx.textAlign = "left";
+  ctx.textBaseline = "alphabetic";
+  ctx.restore();
 }
 
 function formatMissionTime() {
@@ -11963,7 +13026,9 @@ function drawMissionPhaseInfo(hudLayout = null) {
 }
 
 function drawBossNearbyWarning() {
-  if (bossNearbyWarningTimer <= 0 || boss.active) {
+  const nearbyWarningActive = bossNearbyWarningTimer > 0 && !boss.active;
+
+  if (!nearbyWarningActive) {
     return;
   }
 
@@ -12061,23 +13126,11 @@ function drawBossDeathOverlay() {
 }
 
 function drawBossIntroWarning() {
-  if (!boss.active || !boss.introActive) {
-    return;
-  }
-
-  const blink = Math.floor(boss.introTimer / 12) % 2 === 0;
-
-  ctx.save();
-  ctx.textAlign = "center";
-  ctx.fillStyle = blink ? "#ff3333" : "#ffffff";
-  ctx.font = "44px Arial";
-  ctx.fillText(bossIntroWarningTitleText, canvas.width / 2, canvas.height / 2 - 55);
-  ctx.font = "30px Arial";
-  ctx.fillText(bossIntroWarningBodyText, canvas.width / 2, canvas.height / 2);
-  ctx.restore();
+  return;
 }
 
 function drawGame() {
+  const drawStartTime = perfDiagnostics.active ? performance.now() : 0;
   const techMode = isGameplayDebugTechMode();
 
   if (techMode) {
@@ -12086,9 +13139,11 @@ function drawGame() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.restore();
   } else {
-    drawVillageScrollBackground();
-    drawWorldAtmosphere();
-    drawAmbientAerialEffects();
+    measurePerfSection("draw.background", () => {
+      drawVillageScrollBackground();
+      drawWorldAtmosphere();
+      drawAmbientAerialEffects();
+    });
   }
 
   const screenShake = getGameScreenShakeOffset();
@@ -12096,20 +13151,48 @@ function drawGame() {
   ctx.save();
   ctx.translate(screenShake.x, screenShake.y);
   if (!techMode) {
-    drawBullets();
-    drawEnemies();
-    drawBoss();
-    drawBossAttackTelegraphs();
-    drawEnemyBullets();
-    drawEnemyHazardZones();
-    drawWebBullets();
-    drawBossBullets();
-    drawBossWebBullets();
-    drawBossDangerZones();
-    drawBossCoreLaser();
-    drawImpactFlashes();
-    drawSpriteExplosions();
-    drawParticles();
+    measurePerfSection("draw.playerBullets", () => {
+      drawBullets();
+    });
+    measurePerfSection("draw.enemies", () => {
+      drawEnemies();
+    });
+    measurePerfSection("draw.enemyBullets", () => {
+      drawEnemyBullets();
+    });
+    measurePerfSection("draw.webBullets", () => {
+      drawWebBullets();
+    });
+    measurePerfSection("draw.bossBody", () => {
+      drawBoss();
+    });
+    measurePerfSection("draw.bossTelegraphs", () => {
+      drawBossAttackTelegraphs();
+    });
+    measurePerfSection("draw.bossSpreadBullets", () => {
+      drawBossBullets();
+    });
+    measurePerfSection("draw.bossWebBullets", () => {
+      drawBossWebBullets();
+    });
+    measurePerfSection("draw.bossDangerZones", () => {
+      drawBossDangerZones();
+    });
+    measurePerfSection("draw.bossLaser", () => {
+      drawBossCoreLaser();
+    });
+    measurePerfSection("draw.enemyHazardZones", () => {
+      drawEnemyHazardZones();
+    });
+    measurePerfSection("draw.impactFlashes", () => {
+      drawImpactFlashes();
+    });
+    measurePerfSection("draw.spriteExplosions", () => {
+      drawSpriteExplosions();
+    });
+    measurePerfSection("draw.particles", () => {
+      drawParticles();
+    });
   }
   drawGameplayDebugOverlay();
   ctx.restore();
@@ -12117,11 +13200,11 @@ function drawGame() {
   const resultOverlayActive = window.__resultOverlayActive === true;
 
   if (!techMode && !resultOverlayActive) {
-    drawBossHpBar();
     const hudLayout = getGameplayHudLayout();
     drawGameplayHud(hudLayout);
     let statusY = hudLayout.y + hudLayout.height + Math.round(28 + hudLayout.scale * 6);
     statusY += drawMissionPhaseInfo(hudLayout);
+    drawBossHpBar(hudLayout);
     ctx.fillStyle = "white";
     ctx.textAlign = "left";
     ctx.font = '18px "BoldPixels"';
@@ -12154,9 +13237,13 @@ function drawGame() {
     drawMuzzleFlashes();
 
     drawBossNearbyWarning();
-    drawBossIntroWarning();
 
     drawGameStartFadeOverlay();
+  }
+
+  if (perfDiagnostics.active) {
+    perfDiagnostics.totalDrawTime += performance.now() - drawStartTime;
+    perfDiagnostics.drawCount++;
   }
 }
 
@@ -12164,6 +13251,7 @@ function drawGame() {
     // =========================`r`n    // GAME LOOP`r`n    // =========================
 
     function gameLoop() {
+      const frameStartTime = perfDiagnostics.active ? performance.now() : 0;
       const currentFrameTime = performance.now();
       const deltaSeconds = Math.min((currentFrameTime - lastFrameTime) / 1000, 0.05);
       const scaledDeltaSeconds = deltaSeconds * timeScale;
@@ -12189,6 +13277,15 @@ function drawGame() {
       }
 
       draw();
+
+      if (perfDiagnostics.active) {
+        const frameDuration = performance.now() - frameStartTime;
+        perfDiagnostics.totalFrameTime += frameDuration;
+        if (frameDuration > perfDiagnostics.maxFrameTime) {
+          perfDiagnostics.maxFrameTime = frameDuration;
+        }
+        perfDiagnostics.frameCount++;
+      }
 
       requestAnimationFrame(gameLoop);
     }
